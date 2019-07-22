@@ -43,18 +43,25 @@ impl<'a> Lexer {
     use crate::token::*;
     use token_types::*;
 
-    let token;
-    match self.ch {
-      Some('=') => token = Token { token_type: ASSIGN, literal: self.ch },
-      Some(';') => token = Token { token_type: SEMICOLON, literal: self.ch },
-      Some('{') => token = Token { token_type: LBRACE, literal: self.ch },
-      Some('}') => token = Token { token_type: RBRACE, literal: self.ch },
-      Some('(') => token = Token { token_type: LPAREN, literal: self.ch },
-      Some(')') => token = Token { token_type: RPAREN, literal: self.ch },
-      Some(',') => token = Token { token_type: COMMA, literal: self.ch },
-      Some('+') => token = Token { token_type: PLUS, literal: self.ch },
-      Some(_x) => token = Token { token_type: UNKNOWN, literal: self.ch },
-      None => token = Token { token_type: EOF, literal: self.ch },
+    let mut token;
+
+    if let Some(ch) = self.ch {
+      let literal = Some(ch.to_string());
+
+      match ch {
+        '=' => token = Token { token_type: ASSIGN, literal: literal },
+        ';' => token = Token { token_type: SEMICOLON, literal: literal },
+        '{' => token = Token { token_type: LBRACE, literal: literal },
+        '}' => token = Token { token_type: RBRACE, literal: literal },
+        '(' => token = Token { token_type: LPAREN, literal: literal },
+        ')' => token = Token { token_type: RPAREN, literal: literal },
+        ',' => token = Token { token_type: COMMA, literal: literal },
+        '+' => token = Token { token_type: PLUS, literal: literal },
+        _x => token = Token { token_type: ILLEGAL, literal: literal },
+      }
+    }
+    else {
+      token = Token { token_type: EOF, literal: None }
     }
 
     self.read_char();

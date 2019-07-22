@@ -2,7 +2,7 @@ pub type TokenType<'a> = &'a str;
 
 pub struct Token<'a> {
   pub token_type: TokenType<'a>,
-  pub literal: Option<char>,
+  pub literal: Option<String>,
 }
 
 pub mod token_types {
@@ -29,7 +29,4 @@ pub mod token_types {
   // Keywords
   pub const FUNCTION: &str = "FUNCTION";
   pub const LET: &str = "LET";
-
-  // Unknown
-  pub const UNKNOWN: &str = "UNKNOWN";
 }
