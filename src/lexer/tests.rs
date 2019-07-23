@@ -36,9 +36,9 @@ fn test_next_token() {
     Token { token_type: ASSIGN, literal: Some("=".to_string()) },
     Token { token_type: FUNCTION, literal: Some("fn".to_string()) },
     Token { token_type: LPAREN, literal: Some("(".to_string()) },
-    Token { token_type: IDENT, literal: Some("five".to_string()) },
+    Token { token_type: IDENT, literal: Some("x".to_string()) },
     Token { token_type: COMMA, literal: Some(",".to_string()) },
-    Token { token_type: IDENT, literal: Some("ten".to_string()) },
+    Token { token_type: IDENT, literal: Some("y".to_string()) },
     Token { token_type: RPAREN, literal: Some(")".to_string()) },
     Token { token_type: LBRACE, literal: Some("{".to_string()) },
 
@@ -72,7 +72,7 @@ fn test_next_token() {
     let token = lexer.next_token();
 
     if let Some(literal) = &token.literal {
-      println!("Char: {}", *literal)
+      println!("Type: {}, Char: {}", token.token_type, *literal)
     }
 
     assert_eq!(token.token_type, test.token_type);

@@ -31,12 +31,57 @@ impl<'a> Lexer {
       self.ch = None;
     }
     else {
-      println!("Read position: {}", self.read_position);
       self.ch = Some(self.chars[self.read_position]);
     }
 
     self.position = self.read_position;
     self.read_position += 1;
+  }
+
+  pub fn current_char_is_letter(&mut self) -> bool {
+    if None == self.ch {
+      false
+    }
+    else {
+      let ch = self.ch.unwrap();
+      ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_'
+    }
+  }
+
+  pub fn current_char_is_digit(&mut self) -> bool {
+    if None == self.ch {
+      false
+    }
+    else {
+      let ch = self.ch.unwrap();
+      ('0' <= ch && ch <= '9')
+    }
+  }
+
+  pub fn skip_whitespace(&mut self) {
+    while self.ch != None && WHITESPACE_CHARS.contains(&self.ch.unwrap()) {
+      self.read_char();
+    }
+  }
+
+  pub fn read_identifier(&mut self) -> String {
+    let position = self.position;
+
+    while self.current_char_is_letter() {
+      self.read_char();
+    }
+
+    self.chars[position..self.position].into_iter().collect()
+  }
+
+  pub fn read_digit(&mut self) -> String {
+    let position = self.position;
+
+    while self.current_char_is_digit() {
+      self.read_char();
+    }
+
+    self.chars[position..self.position].into_iter().collect()
   }
 
   pub fn next_token(&mut self) -> Token {
@@ -45,7 +90,13 @@ impl<'a> Lexer {
 
     let mut token;
 
-    if let Some(ch) = self.ch {
+    self.skip_whitespace();
+
+    if self.ch == None {
+      token = Token { token_type: EOF, literal: None }
+    }
+    else {
+      let ch = self.ch.unwrap();
       let literal = Some(ch.to_string());
 
       match ch {
@@ -57,11 +108,23 @@ impl<'a> Lexer {
         ')' => token = Token { token_type: RPAREN, literal: literal },
         ',' => token = Token { token_type: COMMA, literal: literal },
         '+' => token = Token { token_type: PLUS, literal: literal },
-        _x => token = Token { token_type: ILLEGAL, literal: literal },
+        _x => {
+          if self.current_char_is_letter() {
+            let literal = self.read_identifier();
+            let token_type = get_token_type_for_string(&literal);
+
+            return Token { token_type: token_type, literal: Some(literal) }
+          }
+          else if self.current_char_is_digit() {
+            let literal = self.read_digit();
+
+            return Token { token_type: INT, literal: Some(literal) }
+          }
+          else {
+            token = Token { token_type: ILLEGAL, literal: literal }
+          }
+        },
       }
-    }
-    else {
-      token = Token { token_type: EOF, literal: None }
     }
 
     self.read_char();

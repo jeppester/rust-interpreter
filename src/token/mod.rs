@@ -5,6 +5,14 @@ pub struct Token<'a> {
   pub literal: Option<String>,
 }
 
+pub fn get_token_type_for_string<'a>(string: &str) -> TokenType<'a> {
+  match string {
+    "fn" => token_types::FUNCTION,
+    "let" => token_types::LET,
+    _x => token_types::IDENT,
+  }
+}
+
 pub mod token_types {
   pub const ILLEGAL: &str = "ILLEGAL";
   pub const EOF: &str = "EOF";
@@ -30,3 +38,5 @@ pub mod token_types {
   pub const FUNCTION: &str = "FUNCTION";
   pub const LET: &str = "LET";
 }
+
+pub const WHITESPACE_CHARS: [char; 4] = [' ', '\t', '\n', '\r'];
