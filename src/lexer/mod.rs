@@ -38,6 +38,17 @@ impl<'a> Lexer {
     self.read_position += 1;
   }
 
+  pub fn peak_char(&mut self) -> Option<char> {
+    use std::convert::TryInto;
+
+    if self.read_position >= self.chars.len().try_into().unwrap() {
+      None
+    }
+    else {
+      Some(self.chars[self.read_position])
+    }
+  }
+
   pub fn current_char_is_letter(&mut self) -> bool {
     if None == self.ch {
       false
@@ -100,7 +111,6 @@ impl<'a> Lexer {
       let literal = Some(ch.to_string());
 
       match ch {
-        '=' => token = Token { token_type: ASSIGN, literal: literal },
         ';' => token = Token { token_type: SEMICOLON, literal: literal },
         '{' => token = Token { token_type: LBRACE, literal: literal },
         '}' => token = Token { token_type: RBRACE, literal: literal },
@@ -108,6 +118,29 @@ impl<'a> Lexer {
         ')' => token = Token { token_type: RPAREN, literal: literal },
         ',' => token = Token { token_type: COMMA, literal: literal },
         '+' => token = Token { token_type: PLUS, literal: literal },
+        '-' => token = Token { token_type: MINUS, literal: literal },
+        '*' => token = Token { token_type: ASTERISK, literal: literal },
+        '/' => token = Token { token_type: SLASH, literal: literal },
+        '<' => token = Token { token_type: LT, literal: literal },
+        '>' => token = Token { token_type: GT, literal: literal },
+        '=' => {
+          if self.peak_char() == Some('=') {
+            token = Token { token_type: EQ, literal: Some("==".to_string()) };
+            self.read_char();
+          }
+          else {
+            token = Token { token_type: ASSIGN, literal: literal };
+          }
+        },
+        '!' => {
+          if self.peak_char() == Some('=') {
+            token = Token { token_type: NOT_EQ, literal: Some("!=".to_string()) };
+            self.read_char();
+          }
+          else {
+            token = Token { token_type: BANG, literal: literal };
+          }
+        },
         _x => {
           if self.current_char_is_letter() {
             let literal = self.read_identifier();
