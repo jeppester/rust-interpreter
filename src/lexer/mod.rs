@@ -3,7 +3,7 @@ mod tests;
 
 use crate::token::*;
 
-struct Lexer {
+pub struct Lexer {
   chars: Vec<char>,
   position: usize,
   read_position: usize,
