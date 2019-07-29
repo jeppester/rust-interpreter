@@ -1,8 +1,9 @@
 pub type TokenType<'a> = &'a str;
+pub type Literal = Option<String>;
 
 pub struct Token<'a> {
   pub token_type: TokenType<'a>,
-  pub literal: Option<String>,
+  pub literal: Literal,
 }
 
 pub fn get_token_type_for_string<'a>(string: &str) -> TokenType<'a> {

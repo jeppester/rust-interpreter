@@ -10,7 +10,7 @@ pub struct Lexer {
   ch: Option<char>,
 }
 
-impl<'a> Lexer {
+impl Lexer {
   pub fn new(input: &str) -> Lexer {
     let mut lexer = Lexer {
       chars: input.chars().collect(),
@@ -95,7 +95,7 @@ impl<'a> Lexer {
     self.chars[position..self.position].into_iter().collect()
   }
 
-  pub fn next_token(&mut self) -> Token {
+  pub fn next_token<'a>(&mut self) -> Token<'a> {
     use crate::token::*;
     use token_types::*;
 
