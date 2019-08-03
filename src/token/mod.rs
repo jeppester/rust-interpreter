@@ -1,12 +1,13 @@
-pub type TokenType<'a> = &'a str;
+pub type TokenType = &'static str;
 pub type Literal = Option<String>;
 
-pub struct Token<'a> {
-  pub token_type: TokenType<'a>,
+#[derive(Clone)]
+pub struct Token {
+  pub token_type: TokenType,
   pub literal: Literal,
 }
 
-pub fn get_token_type_for_string<'a>(string: &str) -> TokenType<'a> {
+pub fn get_token_type_for_string(string: &str) -> TokenType {
   match string {
     "fn" => token_types::FUNCTION,
     "let" => token_types::LET,

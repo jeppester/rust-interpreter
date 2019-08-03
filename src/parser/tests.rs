@@ -28,7 +28,7 @@ fn test_let_statements() {
 
     let node = &program.statements[i];
 
-    assert_eq!(node.token_literal(), &Some("Let".to_string()));
+    assert_eq!(node.token_literal(), &Some("let".to_string()));
 
     if let Node::Statement(statement) = node {
       if let Statement::LetStatement(let_statement) = statement {

@@ -5,11 +5,11 @@ use identifier::Identifier;
 use let_statement::LetStatement;
 use crate::token::Literal;
 
-pub enum Expression<'a> {
-  Identifier(Identifier<'a>),
+pub enum Expression {
+  Identifier(Identifier),
 }
 
-impl<'a> Expression<'a> {
+impl Expression {
   pub fn token_literal(&self) -> &Literal {
     match self {
       Expression::Identifier(expression) => &expression.token.literal,
@@ -17,11 +17,11 @@ impl<'a> Expression<'a> {
   }
 }
 
-pub enum Statement<'a> {
-  LetStatement(LetStatement<'a>),
+pub enum Statement {
+  LetStatement(LetStatement),
 }
 
-impl<'a> Statement<'a> {
+impl Statement {
   pub fn token_literal(&self) -> &Literal {
     match self {
       Statement::LetStatement(statement) => &statement.token.literal,
@@ -29,12 +29,12 @@ impl<'a> Statement<'a> {
   }
 }
 
-pub enum Node<'a> {
-  Expression(Expression<'a>),
-  Statement(Statement<'a>),
+pub enum Node {
+  Expression(Expression),
+  Statement(Statement),
 }
 
-impl<'a> Node<'a> {
+impl Node {
   pub fn token_literal(&self) -> &Literal {
     match self {
       Node::Expression(expression) => expression.token_literal(),
@@ -43,11 +43,11 @@ impl<'a> Node<'a> {
   }
 }
 
-pub struct Program<'a> {
-  pub statements: Vec<Node <'a>>,
+pub struct Program {
+  pub statements: Vec<Node>,
 }
 
-impl<'a> Program<'a> {
+impl Program {
   pub fn token_literal(&self) -> &Literal {
     if self.statements.len() > 0 {
       self.statements[0].token_literal()

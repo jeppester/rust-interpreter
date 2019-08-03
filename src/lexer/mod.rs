@@ -95,7 +95,7 @@ impl Lexer {
     self.chars[position..self.position].into_iter().collect()
   }
 
-  pub fn next_token<'a>(&mut self) -> Token<'a> {
+  pub fn next_token(&mut self) -> Token {
     use crate::token::*;
     use token_types::*;
 
