@@ -12,6 +12,7 @@ pub struct Parser {
   pub lexer: Lexer,
   pub current_token: Token,
   pub peek_token: Token,
+  pub errors: Vec<String>,
 }
 
 impl Parser {
@@ -23,6 +24,7 @@ impl Parser {
       lexer: lexer,
       current_token: current_token,
       peek_token: peek_token,
+      errors: vec![],
     }
   }
 
@@ -45,7 +47,19 @@ impl Parser {
       self.next_token();
     }
 
-    program
+    let error_count = self.errors.len();
+    if error_count == 0 {
+      program
+    }
+    else {
+      println!("Parser has {} error(s):", error_count);
+
+      for error in &self.errors {
+        println!("parser error: {}", error);
+      }
+
+      panic!();
+    }
   }
 
   pub fn parse_statement(&mut self) -> Option<Node> {
@@ -94,7 +108,13 @@ impl Parser {
       true
     }
     else {
+      self.peek_error(token_type);
       false
     }
+  }
+
+  pub fn peek_error(&mut self, token_type: TokenType) {
+    let error = format!("expected next token to be {}, got {} instead", token_type, self.peek_token.token_type);
+    self.errors.push(error);
   }
 }
