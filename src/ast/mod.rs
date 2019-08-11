@@ -1,8 +1,10 @@
 pub mod let_statement;
+pub mod return_statement;
 pub mod identifier;
 
 use identifier::Identifier;
 use let_statement::LetStatement;
+use return_statement::ReturnStatement;
 use crate::token::Literal;
 
 pub enum Expression {
@@ -19,12 +21,14 @@ impl Expression {
 
 pub enum Statement {
   LetStatement(LetStatement),
+  ReturnStatement(ReturnStatement),
 }
 
 impl Statement {
   pub fn token_literal(&self) -> &Literal {
     match self {
       Statement::LetStatement(statement) => &statement.token.literal,
+      Statement::ReturnStatement(statement) => &statement.token.literal,
     }
   }
 }

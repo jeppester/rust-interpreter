@@ -7,6 +7,7 @@ use token_types::*;
 use crate::ast::*;
 use identifier::Identifier;
 use let_statement::LetStatement;
+use return_statement::ReturnStatement;
 
 pub struct Parser {
   pub lexer: Lexer,
@@ -65,6 +66,7 @@ impl Parser {
   pub fn parse_statement(&mut self) -> Option<Node> {
     match self.current_token.token_type {
       LET => self.parse_let_statement(),
+      RETURN => self.parse_return_statement(),
       _x => None,
     }
   }
@@ -91,6 +93,18 @@ impl Parser {
     Some(Node::Statement(Statement::LetStatement(LetStatement {
       token: token,
       name: name,
+    })))
+  }
+
+  pub fn parse_return_statement(&mut self) -> Option<Node> {
+    let token = self.current_token.clone();
+
+    while !self.current_token_is(SEMICOLON) {
+      self.next_token()
+    }
+
+    Some(Node::Statement(Statement::ReturnStatement(ReturnStatement {
+      token: token,
     })))
   }
 
