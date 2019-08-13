@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 pub mod let_statement;
 pub mod return_statement;
 pub mod identifier;
@@ -17,6 +20,12 @@ impl Expression {
       Expression::Identifier(expression) => expression.token.literal.clone(),
     }
   }
+
+  pub fn to_string(&self) -> String {
+    match self {
+      Expression::Identifier(expression) => expression.value.clone(),
+    }
+  }
 }
 
 pub enum Statement {
@@ -29,6 +38,38 @@ impl Statement {
     match self {
       Statement::LetStatement(statement) => statement.token.literal.clone(),
       Statement::ReturnStatement(statement) => statement.token.literal.clone(),
+    }
+  }
+
+  pub fn to_string(&self) -> String {
+    match self {
+      Statement::LetStatement(statement) => {
+        let mut string = String::new();
+
+        string.push_str(&self.token_literal().unwrap());
+        string.push(' ');
+        string.push_str(&statement.name.value);
+        string.push_str(" = ");
+
+        string.push_str("[TODO: EXPRESSION]");
+
+        string.push(';');
+
+        string
+      },
+
+      Statement::ReturnStatement(_statement) => {
+        let mut string = String::new();
+
+        string.push_str(&self.token_literal().unwrap());
+        string.push(' ');
+
+        string.push_str("[TODO: RETURN VALUE]");
+
+        string.push(';');
+
+        string
+      },
     }
   }
 }
@@ -45,6 +86,13 @@ impl Node {
       Node::Statement(statement) => statement.token_literal(),
     }
   }
+
+  pub fn to_string(&self) -> String {
+    match self {
+      Node::Expression(expression) => expression.to_string(),
+      Node::Statement(statement) => statement.to_string(),
+    }
+  }
 }
 
 pub struct Program {
@@ -59,5 +107,15 @@ impl Program {
     else {
       panic!("Empty program!");
     }
+  }
+
+  pub fn to_string(&self) -> String {
+    let mut string = String::new();
+
+    for statement in &self.statements {
+      string.push_str(&statement.to_string());
+    }
+
+    string
   }
 }
