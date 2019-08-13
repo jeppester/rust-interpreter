@@ -12,9 +12,9 @@ pub enum Expression {
 }
 
 impl Expression {
-  pub fn token_literal(&self) -> &Literal {
+  pub fn token_literal(&self) -> Literal {
     match self {
-      Expression::Identifier(expression) => &expression.token.literal,
+      Expression::Identifier(expression) => expression.token.literal.clone(),
     }
   }
 }
@@ -25,10 +25,10 @@ pub enum Statement {
 }
 
 impl Statement {
-  pub fn token_literal(&self) -> &Literal {
+  pub fn token_literal(&self) -> Literal {
     match self {
-      Statement::LetStatement(statement) => &statement.token.literal,
-      Statement::ReturnStatement(statement) => &statement.token.literal,
+      Statement::LetStatement(statement) => statement.token.literal.clone(),
+      Statement::ReturnStatement(statement) => statement.token.literal.clone(),
     }
   }
 }
@@ -39,7 +39,7 @@ pub enum Node {
 }
 
 impl Node {
-  pub fn token_literal(&self) -> &Literal {
+  pub fn token_literal(&self) -> Literal {
     match self {
       Node::Expression(expression) => expression.token_literal(),
       Node::Statement(statement) => statement.token_literal(),
@@ -52,7 +52,7 @@ pub struct Program {
 }
 
 impl Program {
-  pub fn token_literal(&self) -> &Literal {
+  pub fn token_literal(&self) -> Literal {
     if self.statements.len() > 0 {
       self.statements[0].token_literal()
     }
