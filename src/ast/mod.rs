@@ -4,10 +4,12 @@ mod tests;
 pub mod let_statement;
 pub mod return_statement;
 pub mod identifier;
+pub mod expression_statement;
 
 use identifier::Identifier;
 use let_statement::LetStatement;
 use return_statement::ReturnStatement;
+use expression_statement::ExpressionStatement;
 use crate::token::Literal;
 
 pub enum Expression {
@@ -31,6 +33,7 @@ impl Expression {
 pub enum Statement {
   LetStatement(LetStatement),
   ReturnStatement(ReturnStatement),
+  ExpressionStatement(ExpressionStatement),
 }
 
 impl Statement {
@@ -38,6 +41,7 @@ impl Statement {
     match self {
       Statement::LetStatement(statement) => statement.token.literal.clone(),
       Statement::ReturnStatement(statement) => statement.token.literal.clone(),
+      Statement::ExpressionStatement(statement) => statement.token.literal.clone(),
     }
   }
 
@@ -69,6 +73,10 @@ impl Statement {
         string.push(';');
 
         string
+      },
+
+      Statement::ExpressionStatement(statement) => {
+        statement.expression.to_string()
       },
     }
   }
