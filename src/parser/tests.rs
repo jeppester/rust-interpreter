@@ -58,3 +58,24 @@ fn test_return_statements() {
     assert_eq!(node.token_literal(), Some("return".to_string()));
   }
 }
+
+#[test]
+fn test_identifier_expression() {
+  let input = "foobar";
+
+  let lexer = Lexer::new(input);
+  let mut parser = Parser::new(lexer);
+
+  let program = parser.parse_program();
+
+  assert_eq!(program.statements.len(), 1);
+
+  let first_node = &program.statements[0];
+
+  if let Node::Expression(expression) = first_node {
+    if let Expression::Identifier(identifier) = expression {
+      assert_eq!(identifier.value, "foobar");
+      assert_eq!(identifier.token.literal, Some("foobar".to_string()));
+    }
+  }
+}
