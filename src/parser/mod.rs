@@ -34,7 +34,7 @@ pub struct Parser {
 
 pub fn parse_identifier(parser: &mut Parser) -> Expression {
   let token = parser.current_token.clone();
-  let value = token.literal.clone().unwrap();
+  let value = token.literal.clone();
 
   return Expression::Identifier(Identifier {
     token: token,
@@ -111,7 +111,7 @@ impl Parser {
     }
 
     let name_token = self.current_token.clone();
-    let name_value = name_token.literal.clone().unwrap();
+    let name_value = name_token.literal.clone();
     let name = Identifier { token: name_token, value: name_value };
 
     if !self.expect_peek(ASSIGN) {

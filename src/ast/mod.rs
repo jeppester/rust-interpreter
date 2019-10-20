@@ -50,7 +50,7 @@ impl Statement {
       Statement::LetStatement(statement) => {
         let mut string = String::new();
 
-        string.push_str(&self.token_literal().unwrap());
+        string.push_str(&self.token_literal());
         string.push(' ');
         string.push_str(&statement.name.value);
         string.push_str(" = ");
@@ -65,7 +65,7 @@ impl Statement {
       Statement::ReturnStatement(_statement) => {
         let mut string = String::new();
 
-        string.push_str(&self.token_literal().unwrap());
+        string.push_str(&self.token_literal());
         string.push(' ');
 
         string.push_str("[TODO: RETURN VALUE]");

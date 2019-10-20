@@ -8,9 +8,9 @@ fn test_to_string() {
   let program = Program {
     statements: vec![
       Node::Statement(Statement::LetStatement(LetStatement {
-        token: Token { token_type: token_types::LET, literal: Some("let".to_string()) },
+        token: Token { token_type: token_types::LET, literal: "let".to_string() },
         name: Identifier {
-          token: Token { token_type: token_types::IDENT, literal: Some("myVar".to_string()) },
+          token: Token { token_type: token_types::IDENT, literal: "myVar".to_string() },
           value: "myVar".to_string(),
         },
       })),

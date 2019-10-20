@@ -104,11 +104,11 @@ impl Lexer {
     self.skip_whitespace();
 
     if self.ch == None {
-      token = Token { token_type: EOF, literal: None }
+      token = Token { token_type: EOF, literal: "".to_string() }
     }
     else {
       let ch = self.ch.unwrap();
-      let literal = Some(ch.to_string());
+      let literal = ch.to_string();
 
       match ch {
         ';' => token = Token { token_type: SEMICOLON, literal: literal },
@@ -125,7 +125,7 @@ impl Lexer {
         '>' => token = Token { token_type: GT, literal: literal },
         '=' => {
           if self.peak_char() == Some('=') {
-            token = Token { token_type: EQ, literal: Some("==".to_string()) };
+            token = Token { token_type: EQ, literal: "==".to_string() };
             self.read_char();
           }
           else {
@@ -134,7 +134,7 @@ impl Lexer {
         },
         '!' => {
           if self.peak_char() == Some('=') {
-            token = Token { token_type: NOT_EQ, literal: Some("!=".to_string()) };
+            token = Token { token_type: NOT_EQ, literal: "!=".to_string() };
             self.read_char();
           }
           else {
@@ -146,12 +146,12 @@ impl Lexer {
             let literal = self.read_identifier();
             let token_type = get_token_type_for_string(&literal);
 
-            return Token { token_type: token_type, literal: Some(literal) }
+            return Token { token_type: token_type, literal: literal }
           }
           else if self.current_char_is_digit() {
             let literal = self.read_digit();
 
-            return Token { token_type: INT, literal: Some(literal) }
+            return Token { token_type: INT, literal: literal }
           }
           else {
             token = Token { token_type: ILLEGAL, literal: literal }

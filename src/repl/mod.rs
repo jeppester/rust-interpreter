@@ -25,8 +25,7 @@ pub fn start() {
         break;
       }
 
-      let literal = token.literal.unwrap();
-      println!("Type: {}, Char: {}", token.token_type, literal);
+      println!("Type: {}, Char: {}", token.token_type, token.literal);
     }
   }
 }

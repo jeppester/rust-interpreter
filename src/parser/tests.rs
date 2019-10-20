@@ -28,12 +28,12 @@ fn test_let_statements() {
 
     let node = &program.statements[i];
 
-    assert_eq!(node.token_literal(), Some("let".to_string()));
+    assert_eq!(node.token_literal(), "let".to_string());
 
     if let Node::Statement(statement) = node {
       if let Statement::LetStatement(let_statement) = statement {
         assert_eq!(let_statement.name.value, name.to_string());
-        assert_eq!(let_statement.name.token.literal, Some(name.to_string()));
+        assert_eq!(let_statement.name.token.literal, name.to_string());
       }
     }
   }
@@ -55,7 +55,7 @@ fn test_return_statements() {
   assert_eq!(program.statements.len(), 3);
 
   for node in &program.statements {
-    assert_eq!(node.token_literal(), Some("return".to_string()));
+    assert_eq!(node.token_literal(), "return".to_string());
   }
 }
 
@@ -75,7 +75,7 @@ fn test_identifier_expression() {
   if let Node::Expression(expression) = first_node {
     if let Expression::Identifier(identifier) = expression {
       assert_eq!(identifier.value, "foobar");
-      assert_eq!(identifier.token.literal, Some("foobar".to_string()));
+      assert_eq!(identifier.token.literal, "foobar".to_string());
     }
   }
 }

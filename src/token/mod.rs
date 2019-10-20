@@ -1,5 +1,5 @@
 pub type TokenType = &'static str;
-pub type Literal = Option<String>;
+pub type Literal = String;
 
 #[derive(Clone)]
 pub struct Token {
