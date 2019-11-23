@@ -3,13 +3,14 @@ mod tests;
 
 use std::collections::HashMap;
 
+use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::token::*;
-use token_types::*;
-use crate::ast::*;
 use identifier::Identifier;
+use integer_literal::IntegerLiteral;
 use let_statement::LetStatement;
 use return_statement::ReturnStatement;
+use token_types::*;
 
 pub type Precedence = u8;
 
@@ -28,18 +29,37 @@ pub struct Parser {
   pub current_token: Token,
   pub peek_token: Token,
   pub errors: Vec<String>,
-  pub prefix_parser_functions: HashMap<TokenType, fn(&mut Parser) -> Expression>,
-  pub infix_parser_functions: HashMap<TokenType, fn(&mut Parser, Expression) -> Expression>,
+  pub prefix_parser_functions: HashMap<TokenType, fn(&mut Parser) -> Option<Expression>>,
+  pub infix_parser_functions: HashMap<TokenType, fn(&mut Parser, Expression) -> Option<Expression>>,
 }
 
-pub fn parse_identifier(parser: &mut Parser) -> Expression {
+pub fn parse_identifier(parser: &mut Parser) -> Option<Expression> {
   let token = parser.current_token.clone();
   let value = token.literal.clone();
 
-  return Expression::Identifier(Identifier {
+  return Some(Expression::Identifier(Identifier {
     token: token,
     value: value,
-  })
+  }));
+}
+
+pub fn parse_integer_literal(parser: &mut Parser) -> Option<Expression> {
+  let token = parser.current_token.clone();
+
+  match token.literal.parse::<i64>() {
+    Ok(value) => Some(Expression::IntegerLiteral(IntegerLiteral {
+      token: token,
+      value: value,
+    })),
+    Err(_error) => {
+      let error = format!(
+        "could not parse {} as integer",
+        token.literal
+      );
+      parser.errors.push(error);
+      None
+    },
+  }
 }
 
 impl Parser {
@@ -57,6 +77,7 @@ impl Parser {
     };
 
     parser.register_prefix(token_types::IDENT, parse_identifier);
+    parser.register_prefix(token_types::INT, parse_integer_literal);
 
     parser
   }
@@ -83,8 +104,7 @@ impl Parser {
     let error_count = self.errors.len();
     if error_count == 0 {
       program
-    }
-    else {
+    } else {
       println!("Parser has {} error(s):", error_count);
 
       for error in &self.errors {
@@ -107,15 +127,18 @@ impl Parser {
     let token = self.current_token.clone();
 
     if !self.expect_peek(IDENT) {
-      return None
+      return None;
     }
 
     let name_token = self.current_token.clone();
     let name_value = name_token.literal.clone();
-    let name = Identifier { token: name_token, value: name_value };
+    let name = Identifier {
+      token: name_token,
+      value: name_value,
+    };
 
     if !self.expect_peek(ASSIGN) {
-      return None
+      return None;
     }
 
     while !self.current_token_is(SEMICOLON) {
@@ -135,9 +158,9 @@ impl Parser {
       self.next_token()
     }
 
-    Some(Node::Statement(Statement::ReturnStatement(ReturnStatement {
-      token: token,
-    })))
+    Some(Node::Statement(Statement::ReturnStatement(
+      ReturnStatement { token: token },
+    )))
   }
 
   pub fn parse_expression_statement(&mut self) -> Option<Node> {
@@ -150,19 +173,19 @@ impl Parser {
       }
 
       Some(Node::Expression(expression))
-    }
-    else {
+    } else {
       None
     }
   }
 
   pub fn parse_expression(&mut self, precedence: Precedence) -> Option<Expression> {
-    let parser_function_or_none = self.prefix_parser_functions.get(&self.current_token.token_type);
+    let parser_function_or_none = self
+      .prefix_parser_functions
+      .get(&self.current_token.token_type);
 
     if let Some(parser_function) = parser_function_or_none {
-      Some(parser_function(self))
-    }
-    else {
+      parser_function(self)
+    } else {
       None
     }
   }
@@ -179,23 +202,37 @@ impl Parser {
     if self.peek_token_is(token_type) {
       self.next_token();
       true
-    }
-    else {
+    } else {
       self.peek_error(token_type);
       false
     }
   }
 
   pub fn peek_error(&mut self, token_type: TokenType) {
-    let error = format!("expected next token to be {}, got {} instead", token_type, self.peek_token.token_type);
+    let error = format!(
+      "expected next token to be {}, got {} instead",
+      token_type, self.peek_token.token_type
+    );
     self.errors.push(error);
   }
 
-  pub fn register_prefix(&mut self, token_type: TokenType, parser_function: fn(&mut Parser) -> Expression) {
-    self.prefix_parser_functions.insert(token_type, parser_function);
+  pub fn register_prefix(
+    &mut self,
+    token_type: TokenType,
+    parser_function: fn(&mut Parser) -> Option<Expression>,
+  ) {
+    self
+      .prefix_parser_functions
+      .insert(token_type, parser_function);
   }
 
-  pub fn register_infix(&mut self, token_type: TokenType, parser_function: fn(&mut Parser, Expression) -> Expression) {
-    self.infix_parser_functions.insert(token_type, parser_function);
+  pub fn register_infix(
+    &mut self,
+    token_type: TokenType,
+    parser_function: fn(&mut Parser, Expression) -> Option<Expression>,
+  ) {
+    self
+      .infix_parser_functions
+      .insert(token_type, parser_function);
   }
 }

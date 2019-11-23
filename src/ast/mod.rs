@@ -4,9 +4,11 @@ mod tests;
 pub mod let_statement;
 pub mod return_statement;
 pub mod identifier;
+pub mod integer_literal;
 pub mod expression_statement;
 
 use identifier::Identifier;
+use integer_literal::IntegerLiteral;
 use let_statement::LetStatement;
 use return_statement::ReturnStatement;
 use expression_statement::ExpressionStatement;
@@ -14,18 +16,21 @@ use crate::token::Literal;
 
 pub enum Expression {
   Identifier(Identifier),
+  IntegerLiteral(IntegerLiteral),
 }
 
 impl Expression {
   pub fn token_literal(&self) -> Literal {
     match self {
       Expression::Identifier(expression) => expression.token.literal.clone(),
+      Expression::IntegerLiteral(integer_literal) => integer_literal.token.literal.clone(),
     }
   }
 
   pub fn to_string(&self) -> String {
     match self {
       Expression::Identifier(expression) => expression.value.clone(),
+      Expression::IntegerLiteral(integer_literal) => integer_literal.value.to_string(),
     }
   }
 }
