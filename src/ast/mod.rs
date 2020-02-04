@@ -14,6 +14,7 @@ use return_statement::ReturnStatement;
 use expression_statement::ExpressionStatement;
 use crate::token::Literal;
 
+#[derive(Debug)]
 pub enum Expression {
   Identifier(Identifier),
   IntegerLiteral(IntegerLiteral),
@@ -35,6 +36,7 @@ impl Expression {
   }
 }
 
+#[derive(Debug)]
 pub enum Statement {
   LetStatement(LetStatement),
   ReturnStatement(ReturnStatement),
@@ -87,6 +89,7 @@ impl Statement {
   }
 }
 
+#[derive(Debug)]
 pub enum Node {
   Expression(Expression),
   Statement(Statement),

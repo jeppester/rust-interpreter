@@ -2,6 +2,7 @@ pub type TokenType = &'static str;
 pub type Literal = String;
 
 #[derive(Clone)]
+#[derive(Debug)]
 pub struct Token {
   pub token_type: TokenType,
   pub literal: Literal,
