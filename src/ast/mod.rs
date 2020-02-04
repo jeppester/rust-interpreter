@@ -6,18 +6,21 @@ pub mod return_statement;
 pub mod identifier;
 pub mod integer_literal;
 pub mod expression_statement;
+pub mod prefix_expression;
 
 use identifier::Identifier;
 use integer_literal::IntegerLiteral;
 use let_statement::LetStatement;
 use return_statement::ReturnStatement;
 use expression_statement::ExpressionStatement;
+use prefix_expression::PrefixExpression;
 use crate::token::Literal;
 
 #[derive(Debug)]
 pub enum Expression {
   Identifier(Identifier),
   IntegerLiteral(IntegerLiteral),
+  PrefixExpression(PrefixExpression),
 }
 
 impl Expression {
@@ -25,6 +28,7 @@ impl Expression {
     match self {
       Expression::Identifier(expression) => expression.token.literal.clone(),
       Expression::IntegerLiteral(integer_literal) => integer_literal.token.literal.clone(),
+      Expression::PrefixExpression(prefix_expression) => prefix_expression.token.literal.clone(),
     }
   }
 
@@ -32,6 +36,16 @@ impl Expression {
     match self {
       Expression::Identifier(expression) => expression.value.clone(),
       Expression::IntegerLiteral(integer_literal) => integer_literal.value.to_string(),
+      Expression::PrefixExpression(prefix_expression) => {
+        let mut string = String::new();
+
+        string.push('(');
+        string.push_str(&prefix_expression.operator.to_string());
+        string.push_str(&prefix_expression.right.to_string());
+        string.push(')');
+
+        string
+      }
     }
   }
 }

@@ -8,6 +8,7 @@ use crate::lexer::Lexer;
 use crate::token::*;
 use identifier::Identifier;
 use integer_literal::IntegerLiteral;
+use prefix_expression::PrefixExpression;
 use let_statement::LetStatement;
 use return_statement::ReturnStatement;
 use token_types::*;
@@ -62,6 +63,29 @@ pub fn parse_integer_literal(parser: &mut Parser) -> Option<Expression> {
   }
 }
 
+pub fn parse_prefix_expression(parser: &mut Parser) -> Option<Expression> {
+  let token = parser.current_token.clone();
+  let operator = token.literal.clone();
+
+  parser.next_token();
+
+  let expression_or_none = parser.parse_expression(precedences::PREFIX);
+
+  match expression_or_none {
+    Some(expression) => {
+      Some(Expression::PrefixExpression(PrefixExpression {
+        token: token,
+        operator: operator,
+        right: Box::new(expression),
+      }))
+    },
+    None => {
+      parser.no_right_error(token.token_type);
+      None
+    }
+  }
+}
+
 impl Parser {
   pub fn new(mut lexer: Lexer) -> Self {
     let current_token = lexer.next_token();
@@ -78,6 +102,8 @@ impl Parser {
 
     parser.register_prefix(token_types::IDENT, parse_identifier);
     parser.register_prefix(token_types::INT, parse_integer_literal);
+    parser.register_prefix(token_types::MINUS, parse_prefix_expression);
+    parser.register_prefix(token_types::BANG, parse_prefix_expression);
 
     parser
   }
@@ -186,6 +212,7 @@ impl Parser {
     if let Some(parser_function) = parser_function_or_none {
       parser_function(self)
     } else {
+      self.prefix_parser_error(self.current_token.token_type);
       None
     }
   }
@@ -206,6 +233,16 @@ impl Parser {
       self.peek_error(token_type);
       false
     }
+  }
+
+  pub fn prefix_parser_error(&mut self, token_type: TokenType) {
+    let error = format!("no prefix parse function found for {}", token_type);
+    self.errors.push(error);
+  }
+
+  pub fn no_right_error(&mut self, token_type: TokenType) {
+    let error = format!("no right side found for prefix expression {}", token_type);
+    self.errors.push(error);
   }
 
   pub fn peek_error(&mut self, token_type: TokenType) {
