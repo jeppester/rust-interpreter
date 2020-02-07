@@ -99,7 +99,7 @@ impl Lexer {
     use crate::token::*;
     use token_types::*;
 
-    let mut token;
+    let token;
 
     self.skip_whitespace();
 
