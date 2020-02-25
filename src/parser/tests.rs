@@ -22,15 +22,15 @@ fn test_let_statements() {
   for (i, test) in tests.iter().enumerate() {
     let name = test;
 
-    let node = &program.statements[i];
+    let first_node = &program.statements[i];
 
-    assert_eq!(node.token_literal(), "let".to_string());
+    assert_eq!(first_node.token_literal(), "let".to_string());
 
-    if let Node::Statement(statement) = node {
-      if let Statement::LetStatement(let_statement) = statement {
-        assert_eq!(let_statement.name.value, name.to_string());
-        assert_eq!(let_statement.name.token.literal, name.to_string());
-      }
+    if let Node::Statement(Statement::LetStatement(let_statement)) = first_node {
+      assert_eq!(let_statement.name.value, name.to_string());
+      assert_eq!(let_statement.name.token.literal, name.to_string());
+    } else {
+      panic!("Expected let statement, got {:?}", first_node)
     }
   }
 }
@@ -51,7 +51,11 @@ fn test_return_statements() {
   assert_eq!(program.statements.len(), 3);
 
   for node in &program.statements {
-    assert_eq!(node.token_literal(), "return".to_string());
+    if let Node::Statement(Statement::ReturnStatement(return_statement)) = node {
+      assert_eq!(return_statement.token.literal, "return".to_string());
+    } else {
+      panic!("Expected return statement, got {:?}", node)
+    }
   }
 }
 
@@ -68,11 +72,11 @@ fn test_identifier_expression() {
 
   let first_node = &program.statements[0];
 
-  if let Node::Expression(expression) = first_node {
-    if let Expression::Identifier(identifier) = expression {
-      assert_eq!(identifier.value, "foobar");
-      assert_eq!(identifier.token.literal, "foobar".to_string());
-    }
+  if let Node::Expression(Expression::Identifier(identifier)) = first_node {
+    assert_eq!(identifier.value, "foobar");
+    assert_eq!(identifier.token.literal, "foobar".to_string());
+  } else {
+    panic!("Expected identifier expression, got {:?}", first_node)
   }
 }
 
@@ -89,9 +93,10 @@ fn test_integer_literal_expression() {
 
   let first_node = &program.statements[0];
 
-  if let Node::Expression(Expression::IntegerLiteral(integer_literal)) = first_node {
-    assert_eq!(integer_literal.value, 5);
-    assert_eq!(integer_literal.token.literal, "5".to_string());
+  if let Node::Expression(expression) = first_node {
+    assert_integer_literal(expression, &5)
+  } else {
+    panic!("Expected integer literal expression, got {:?}", first_node)
   }
 }
 
