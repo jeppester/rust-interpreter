@@ -1,26 +1,29 @@
 #[cfg(test)]
 mod tests;
 
-pub mod let_statement;
-pub mod return_statement;
-pub mod identifier;
-pub mod integer_literal;
 pub mod expression_statement;
+pub mod identifier;
+pub mod infix_expression;
+pub mod integer_literal;
+pub mod let_statement;
 pub mod prefix_expression;
+pub mod return_statement;
 
+use crate::token::Literal;
+use expression_statement::ExpressionStatement;
 use identifier::Identifier;
+use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
 use let_statement::LetStatement;
-use return_statement::ReturnStatement;
-use expression_statement::ExpressionStatement;
 use prefix_expression::PrefixExpression;
-use crate::token::Literal;
+use return_statement::ReturnStatement;
 
 #[derive(Debug)]
 pub enum Expression {
   Identifier(Identifier),
   IntegerLiteral(IntegerLiteral),
   PrefixExpression(PrefixExpression),
+  InfixExpression(InfixExpression),
 }
 
 impl Expression {
@@ -29,6 +32,7 @@ impl Expression {
       Expression::Identifier(expression) => expression.token.literal.clone(),
       Expression::IntegerLiteral(integer_literal) => integer_literal.token.literal.clone(),
       Expression::PrefixExpression(prefix_expression) => prefix_expression.token.literal.clone(),
+      Expression::InfixExpression(infix_expression) => infix_expression.token.literal.clone(),
     }
   }
 
@@ -42,6 +46,19 @@ impl Expression {
         string.push('(');
         string.push_str(&prefix_expression.operator.to_string());
         string.push_str(&prefix_expression.right.to_string());
+        string.push(')');
+
+        string
+      }
+      Expression::InfixExpression(infix_expression) => {
+        let mut string = String::new();
+
+        string.push('(');
+        string.push_str(&infix_expression.left.to_string());
+        string.push(' ');
+        string.push_str(&infix_expression.operator.to_string());
+        string.push(' ');
+        string.push_str(&infix_expression.right.to_string());
         string.push(')');
 
         string
@@ -81,7 +98,7 @@ impl Statement {
         string.push(';');
 
         string
-      },
+      }
 
       Statement::ReturnStatement(_statement) => {
         let mut string = String::new();
@@ -94,11 +111,9 @@ impl Statement {
         string.push(';');
 
         string
-      },
+      }
 
-      Statement::ExpressionStatement(statement) => {
-        statement.expression.to_string()
-      },
+      Statement::ExpressionStatement(statement) => statement.expression.to_string(),
     }
   }
 }
@@ -133,8 +148,7 @@ impl Program {
   pub fn token_literal(&self) -> Literal {
     if self.statements.len() > 0 {
       self.statements[0].token_literal()
-    }
-    else {
+    } else {
       panic!("Empty program!");
     }
   }

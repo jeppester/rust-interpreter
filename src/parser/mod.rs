@@ -9,6 +9,7 @@ use crate::token::*;
 use identifier::Identifier;
 use integer_literal::IntegerLiteral;
 use prefix_expression::PrefixExpression;
+use infix_expression::InfixExpression;
 use let_statement::LetStatement;
 use return_statement::ReturnStatement;
 use token_types::*;
@@ -23,6 +24,20 @@ pub mod precedences {
   pub const PRODUCT: u8 = 4;
   pub const PREFIX: u8 = 5;
   pub const CALL: u8 = 6;
+}
+
+pub fn get_operator_precedence(token_type: TokenType) -> Precedence {
+  match token_type {
+    EQ => precedences::EQUALS,
+    NOT_EQ => precedences::EQUALS,
+    LT => precedences::LESS_OR_GREATER,
+    GT => precedences::LESS_OR_GREATER,
+    PLUS => precedences::SUM,
+    MINUS => precedences::SUM,
+    SLASH => precedences::PRODUCT,
+    ASTERISK => precedences::PRODUCT,
+    _x => precedences::LOWEST,
+  }
 }
 
 pub struct Parser {
@@ -86,6 +101,31 @@ pub fn parse_prefix_expression(parser: &mut Parser) -> Option<Expression> {
   }
 }
 
+pub fn parse_infix_expression(parser: &mut Parser, left: Expression) -> Option<Expression> {
+  let token = parser.current_token.clone();
+  let operator = token.literal.clone();
+
+  let precedence = parser.current_precedence();
+  parser.next_token();
+
+  let right_or_none = parser.parse_expression(precedence);
+
+  match right_or_none {
+    Some(right) => {
+      Some(Expression::InfixExpression(InfixExpression {
+        token: token,
+        left: Box::new(left),
+        operator: operator,
+        right: Box::new(right),
+      }))
+    },
+    None => {
+      parser.no_right_error(token.token_type);
+      None
+    }
+  }
+}
+
 impl Parser {
   pub fn new(mut lexer: Lexer) -> Self {
     let current_token = lexer.next_token();
@@ -102,8 +142,18 @@ impl Parser {
 
     parser.register_prefix(token_types::IDENT, parse_identifier);
     parser.register_prefix(token_types::INT, parse_integer_literal);
+
     parser.register_prefix(token_types::MINUS, parse_prefix_expression);
     parser.register_prefix(token_types::BANG, parse_prefix_expression);
+
+    parser.register_infix(token_types::EQ, parse_infix_expression);
+    parser.register_infix(token_types::NOT_EQ, parse_infix_expression);
+    parser.register_infix(token_types::LT, parse_infix_expression);
+    parser.register_infix(token_types::GT, parse_infix_expression);
+    parser.register_infix(token_types::PLUS, parse_infix_expression);
+    parser.register_infix(token_types::MINUS, parse_infix_expression);
+    parser.register_infix(token_types::SLASH, parse_infix_expression);
+    parser.register_infix(token_types::ASTERISK, parse_infix_expression);
 
     parser
   }
@@ -205,12 +255,32 @@ impl Parser {
   }
 
   pub fn parse_expression(&mut self, precedence: Precedence) -> Option<Expression> {
-    let parser_function_or_none = self
+    let prefix_parser_function_or_none = self
       .prefix_parser_functions
       .get(&self.current_token.token_type);
 
-    if let Some(parser_function) = parser_function_or_none {
-      parser_function(self)
+    if let Some(prefix_parser_function) = prefix_parser_function_or_none {
+      let mut expression = prefix_parser_function(self);
+      if let None = expression { return None }
+
+      while !self.peek_token_is(SEMICOLON) && precedence < self.peek_precedence() {
+        let has_infix_operator = self
+          .infix_parser_functions
+          .contains_key(&self.peek_token.token_type);
+
+        if !has_infix_operator { return expression }
+
+        self.next_token();
+
+        let infix_parser_function = self
+          .infix_parser_functions
+          .get(&self.current_token.token_type)
+          .unwrap();
+
+        expression = infix_parser_function(self, expression.unwrap());
+      }
+
+      return expression
     } else {
       self.prefix_parser_error(self.current_token.token_type);
       None
@@ -233,6 +303,14 @@ impl Parser {
       self.peek_error(token_type);
       false
     }
+  }
+
+  pub fn current_precedence(&mut self) -> Precedence {
+    get_operator_precedence(self.current_token.token_type)
+  }
+
+  pub fn peek_precedence(&mut self) -> Precedence {
+    get_operator_precedence(self.peek_token.token_type)
   }
 
   pub fn prefix_parser_error(&mut self, token_type: TokenType) {

@@ -97,10 +97,7 @@ fn test_integer_literal_expression() {
 
 #[test]
 fn test_prefix_expressions() {
-  let tests = vec![
-    ("!5", "!", 5),
-    ("-15", "-", 15),
-  ];
+  let tests = vec![("!5", "!", 5), ("-15", "-", 15)];
 
   for test in &tests {
     let (input, operator, integer_value) = test;
@@ -117,19 +114,84 @@ fn test_prefix_expressions() {
     if let Node::Expression(Expression::PrefixExpression(prefix_expression)) = first_node {
       assert_eq!(prefix_expression.operator, operator.to_string());
       assert_integer_literal(&*prefix_expression.right, integer_value);
-    }
-    else {
+    } else {
       panic!("Expected prefix expression, got {:?}", first_node)
     }
   }
 }
 
-fn assert_integer_literal(expression: &Expression, value: &i64)  {
+#[test]
+fn test_infix_expressions() {
+  let tests = vec![
+    ("5 + 5", 5, "+", 5),
+    ("5 - 5", 5, "-", 5),
+    ("5 * 5", 5, "*", 5),
+    ("5 / 5", 5, "/", 5),
+    ("5 < 5", 5, "<", 5),
+    ("5 > 5", 5, ">", 5),
+    ("5 == 5", 5, "==", 5),
+    ("5 != 5", 5, "!=", 5),
+  ];
+
+  for test in &tests {
+    let (input, left_value, operator, right_value) = test;
+
+    let lexer = Lexer::new(input);
+    let mut parser = Parser::new(lexer);
+
+    let program = parser.parse_program();
+
+    assert_eq!(program.statements.len(), 1);
+
+    let first_node = &program.statements[0];
+
+    if let Node::Expression(Expression::InfixExpression(infix_expression)) = first_node {
+      assert_eq!(infix_expression.operator, operator.to_string());
+      assert_integer_literal(&*infix_expression.left, left_value);
+      assert_integer_literal(&*infix_expression.right, right_value);
+    } else {
+      panic!("Expected infix expression, got {:?}", first_node)
+    }
+  }
+}
+
+#[test]
+fn test_operator_precedence_parsing() {
+  let tests = vec![
+    ("-a * b", "((-a) * b)"),
+    ("!-a", "(!(-a))"),
+    ("a + b + c", "((a + b) + c)"),
+    ("a + b - c", "((a + b) - c)"),
+    ("a * b * c", "((a * b) * c)"),
+    ("a * b / c", "((a * b) / c)"),
+    ("a + b / c", "(a + (b / c))"),
+    ("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"),
+    ("3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"),
+    ("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"),
+    ("5 < 4 != 3 < 4", "((5 < 4) != (3 < 4))"),
+    (
+      "3 + 4 * 5 == 3 * 1 + 4 * 5",
+      "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+    ),
+  ];
+
+  for test in &tests {
+    let (input, expected) = test;
+
+    let lexer = Lexer::new(input);
+    let mut parser = Parser::new(lexer);
+
+    let program = parser.parse_program();
+
+    assert_eq!(&program.to_string(), expected);
+  }
+}
+
+fn assert_integer_literal(expression: &Expression, value: &i64) {
   if let Expression::IntegerLiteral(integer_literal) = expression {
     assert_eq!(&integer_literal.value, value);
     assert_eq!(integer_literal.token.literal, value.to_string());
-  }
-  else {
+  } else {
     panic!("Expected integer literal expression, got {:?}", expression)
   }
 }
