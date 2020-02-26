@@ -101,6 +101,31 @@ fn test_integer_literal_expression() {
 }
 
 #[test]
+fn test_boolean_expression() {
+  let tests = vec![("true;", "true", true), ("false;", "false", false)];
+
+  for test in &tests {
+    let (input, literal, value) = test;
+
+    let lexer = Lexer::new(input);
+    let mut parser = Parser::new(lexer);
+
+    let program = parser.parse_program();
+
+    assert_eq!(program.statements.len(), 1);
+
+    let first_node = &program.statements[0];
+
+    if let Node::Expression(Expression::Boolean(boolean)) = first_node {
+      assert_eq!(&boolean.value, value);
+      assert_eq!(boolean.token.literal, literal.to_string());
+    } else {
+      panic!("Expected boolean expression, got {:?}", first_node)
+    }
+  }
+}
+
+#[test]
 fn test_prefix_expressions() {
   let tests = vec![("!5", "!", 5), ("-15", "-", 15)];
 

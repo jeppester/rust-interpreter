@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests;
 
+pub mod boolean;
 pub mod expression_statement;
 pub mod identifier;
 pub mod infix_expression;
@@ -10,6 +11,7 @@ pub mod prefix_expression;
 pub mod return_statement;
 
 use crate::token::Literal;
+use boolean::Boolean;
 use expression_statement::ExpressionStatement;
 use identifier::Identifier;
 use infix_expression::InfixExpression;
@@ -20,6 +22,7 @@ use return_statement::ReturnStatement;
 
 #[derive(Debug)]
 pub enum Expression {
+  Boolean(Boolean),
   Identifier(Identifier),
   IntegerLiteral(IntegerLiteral),
   PrefixExpression(PrefixExpression),
@@ -30,6 +33,7 @@ impl Expression {
   pub fn token_literal(&self) -> Literal {
     match self {
       Expression::Identifier(expression) => expression.token.literal.clone(),
+      Expression::Boolean(boolean) => boolean.token.literal.clone(),
       Expression::IntegerLiteral(integer_literal) => integer_literal.token.literal.clone(),
       Expression::PrefixExpression(prefix_expression) => prefix_expression.token.literal.clone(),
       Expression::InfixExpression(infix_expression) => infix_expression.token.literal.clone(),
@@ -40,6 +44,7 @@ impl Expression {
     match self {
       Expression::Identifier(expression) => expression.value.clone(),
       Expression::IntegerLiteral(integer_literal) => integer_literal.value.to_string(),
+      Expression::Boolean(boolean) => boolean.value.to_string(),
       Expression::PrefixExpression(prefix_expression) => {
         let mut string = String::new();
 

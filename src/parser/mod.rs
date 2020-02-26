@@ -6,11 +6,12 @@ use std::collections::HashMap;
 use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::token::*;
+use boolean::Boolean;
 use identifier::Identifier;
-use integer_literal::IntegerLiteral;
-use prefix_expression::PrefixExpression;
 use infix_expression::InfixExpression;
+use integer_literal::IntegerLiteral;
 use let_statement::LetStatement;
+use prefix_expression::PrefixExpression;
 use return_statement::ReturnStatement;
 use token_types::*;
 
@@ -49,6 +50,13 @@ pub struct Parser {
   pub infix_parser_functions: HashMap<TokenType, fn(&mut Parser, Expression) -> Option<Expression>>,
 }
 
+pub fn parse_boolean(parser: &mut Parser) -> Option<Expression> {
+  return Some(Expression::Boolean(Boolean {
+    token: parser.current_token.clone(),
+    value: parser.current_token_is(token_types::TRUE),
+  }));
+}
+
 pub fn parse_identifier(parser: &mut Parser) -> Option<Expression> {
   let token = parser.current_token.clone();
   let value = token.literal.clone();
@@ -68,13 +76,10 @@ pub fn parse_integer_literal(parser: &mut Parser) -> Option<Expression> {
       value: value,
     })),
     Err(_error) => {
-      let error = format!(
-        "could not parse {} as integer",
-        token.literal
-      );
+      let error = format!("could not parse {} as integer", token.literal);
       parser.errors.push(error);
       None
-    },
+    }
   }
 }
 
@@ -87,13 +92,11 @@ pub fn parse_prefix_expression(parser: &mut Parser) -> Option<Expression> {
   let expression_or_none = parser.parse_expression(precedences::PREFIX);
 
   match expression_or_none {
-    Some(expression) => {
-      Some(Expression::PrefixExpression(PrefixExpression {
-        token: token,
-        operator: operator,
-        right: Box::new(expression),
-      }))
-    },
+    Some(expression) => Some(Expression::PrefixExpression(PrefixExpression {
+      token: token,
+      operator: operator,
+      right: Box::new(expression),
+    })),
     None => {
       parser.no_right_error(token.token_type);
       None
@@ -111,14 +114,12 @@ pub fn parse_infix_expression(parser: &mut Parser, left: Expression) -> Option<E
   let right_or_none = parser.parse_expression(precedence);
 
   match right_or_none {
-    Some(right) => {
-      Some(Expression::InfixExpression(InfixExpression {
-        token: token,
-        left: Box::new(left),
-        operator: operator,
-        right: Box::new(right),
-      }))
-    },
+    Some(right) => Some(Expression::InfixExpression(InfixExpression {
+      token: token,
+      left: Box::new(left),
+      operator: operator,
+      right: Box::new(right),
+    })),
     None => {
       parser.no_right_error(token.token_type);
       None
@@ -142,6 +143,8 @@ impl Parser {
 
     parser.register_prefix(token_types::IDENT, parse_identifier);
     parser.register_prefix(token_types::INT, parse_integer_literal);
+    parser.register_prefix(token_types::TRUE, parse_boolean);
+    parser.register_prefix(token_types::FALSE, parse_boolean);
 
     parser.register_prefix(token_types::MINUS, parse_prefix_expression);
     parser.register_prefix(token_types::BANG, parse_prefix_expression);
@@ -261,14 +264,18 @@ impl Parser {
 
     if let Some(prefix_parser_function) = prefix_parser_function_or_none {
       let mut expression = prefix_parser_function(self);
-      if let None = expression { return None }
+      if let None = expression {
+        return None;
+      }
 
       while !self.peek_token_is(SEMICOLON) && precedence < self.peek_precedence() {
         let has_infix_operator = self
           .infix_parser_functions
           .contains_key(&self.peek_token.token_type);
 
-        if !has_infix_operator { return expression }
+        if !has_infix_operator {
+          return expression;
+        }
 
         self.next_token();
 
@@ -280,7 +287,7 @@ impl Parser {
         expression = infix_parser_function(self, expression.unwrap());
       }
 
-      return expression
+      return expression;
     } else {
       self.prefix_parser_error(self.current_token.token_type);
       None
