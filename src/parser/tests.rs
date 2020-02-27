@@ -134,6 +134,8 @@ fn test_prefix_expressions() {
   let tests = vec![
     ("!5", "!", LiteralValue::Integer(5)),
     ("-15", "-", LiteralValue::Integer(15)),
+    ("!true", "!", LiteralValue::Boolean(true)),
+    ("!false", "!", LiteralValue::Boolean(false)),
   ];
 
   for test in &tests {
@@ -208,6 +210,24 @@ fn test_infix_expressions() {
       "!=",
       LiteralValue::Integer(5),
     ),
+    (
+      "true == true",
+      LiteralValue::Boolean(true),
+      "==",
+      LiteralValue::Boolean(true),
+    ),
+    (
+      "true != false",
+      LiteralValue::Boolean(true),
+      "!=",
+      LiteralValue::Boolean(false),
+    ),
+    (
+      "false == false",
+      LiteralValue::Boolean(false),
+      "==",
+      LiteralValue::Boolean(false),
+    ),
   ];
 
   for test in &tests {
@@ -248,6 +268,10 @@ fn test_operator_precedence_parsing() {
       "3 + 4 * 5 == 3 * 1 + 4 * 5",
       "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
     ),
+    ("true", "true"),
+    ("false", "false"),
+    ("3 > 5 == false", "((3 > 5) == false)"),
+    ("3 < 5 == true", "((3 < 5) == true)"),
   ];
 
   for test in &tests {
