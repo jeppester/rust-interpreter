@@ -127,6 +127,18 @@ pub fn parse_infix_expression(parser: &mut Parser, left: Expression) -> Option<E
   }
 }
 
+pub fn parse_grouped_expression(parser: &mut Parser) -> Option<Expression> {
+  parser.next_token();
+
+  let expression = parser.parse_expression(precedences::LOWEST);
+
+  if !parser.expect_peek(token_types::RPAREN) {
+    None
+  } else {
+    expression
+  }
+}
+
 impl Parser {
   pub fn new(mut lexer: Lexer) -> Self {
     let current_token = lexer.next_token();
@@ -148,6 +160,7 @@ impl Parser {
 
     parser.register_prefix(token_types::MINUS, parse_prefix_expression);
     parser.register_prefix(token_types::BANG, parse_prefix_expression);
+    parser.register_prefix(token_types::LPAREN, parse_grouped_expression);
 
     parser.register_infix(token_types::EQ, parse_infix_expression);
     parser.register_infix(token_types::NOT_EQ, parse_infix_expression);
