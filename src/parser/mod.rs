@@ -243,7 +243,6 @@ impl Parser {
   }
 
   pub fn parse_expression_statement(&mut self) -> Option<Node> {
-    let token = self.current_token.clone();
     let expression_or_none = self.parse_expression(precedences::LOWEST);
 
     if let Some(expression) = expression_or_none {
