@@ -2,6 +2,12 @@ use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 
+enum LiteralValue {
+  Boolean(bool),
+  Identifier(String),
+  Integer(i64),
+}
+
 #[test]
 fn test_let_statements() {
   let input = "
@@ -154,14 +160,54 @@ fn test_prefix_expressions() {
 #[test]
 fn test_infix_expressions() {
   let tests = vec![
-    ("5 + 5", 5, "+", 5),
-    ("5 - 5", 5, "-", 5),
-    ("5 * 5", 5, "*", 5),
-    ("5 / 5", 5, "/", 5),
-    ("5 < 5", 5, "<", 5),
-    ("5 > 5", 5, ">", 5),
-    ("5 == 5", 5, "==", 5),
-    ("5 != 5", 5, "!=", 5),
+    (
+      "5 + 5",
+      LiteralValue::Integer(5),
+      "+",
+      LiteralValue::Integer(5),
+    ),
+    (
+      "5 - 5",
+      LiteralValue::Integer(5),
+      "-",
+      LiteralValue::Integer(5),
+    ),
+    (
+      "5 * 5",
+      LiteralValue::Integer(5),
+      "*",
+      LiteralValue::Integer(5),
+    ),
+    (
+      "5 / 5",
+      LiteralValue::Integer(5),
+      "/",
+      LiteralValue::Integer(5),
+    ),
+    (
+      "5 < 5",
+      LiteralValue::Integer(5),
+      "<",
+      LiteralValue::Integer(5),
+    ),
+    (
+      "5 > 5",
+      LiteralValue::Integer(5),
+      ">",
+      LiteralValue::Integer(5),
+    ),
+    (
+      "5 == 5",
+      LiteralValue::Integer(5),
+      "==",
+      LiteralValue::Integer(5),
+    ),
+    (
+      "5 != 5",
+      LiteralValue::Integer(5),
+      "!=",
+      LiteralValue::Integer(5),
+    ),
   ];
 
   for test in &tests {
@@ -176,12 +222,10 @@ fn test_infix_expressions() {
 
     let first_node = &program.statements[0];
 
-    if let Node::Expression(Expression::InfixExpression(infix_expression)) = first_node {
-      assert_eq!(infix_expression.operator, operator.to_string());
-      assert_integer_literal(&*infix_expression.left, left_value);
-      assert_integer_literal(&*infix_expression.right, right_value);
+    if let Node::Expression(expression) = first_node {
+      assert_infix(expression, left_value, operator.to_string(), right_value)
     } else {
-      panic!("Expected infix expression, got {:?}", first_node)
+      panic!("Expected expression node, got {:?}", first_node)
     }
   }
 }
@@ -248,15 +292,25 @@ fn assert_integer_literal(expression: &Expression, value: &i64) {
   }
 }
 
-enum LiteralValue {
-  Boolean(bool),
-  Identifier(String),
-  Integer(i64),
-}
-fn assert_literal(expression: &Expression, value: LiteralValue) {
+fn assert_literal(expression: &Expression, value: &LiteralValue) {
   match value {
     LiteralValue::Boolean(boolean_value) => assert_boolean(expression, &boolean_value),
     LiteralValue::Identifier(identifier_value) => assert_identifier(expression, &identifier_value),
     LiteralValue::Integer(integer_value) => assert_integer_literal(expression, &integer_value),
+  }
+}
+
+fn assert_infix(
+  expression: &Expression,
+  left: &LiteralValue,
+  operator: String,
+  right: &LiteralValue,
+) {
+  if let Expression::InfixExpression(infix_expression) = expression {
+    assert_literal(&*infix_expression.left, left);
+    assert_eq!(infix_expression.operator, operator);
+    assert_literal(&*infix_expression.right, right);
+  } else {
+    panic!("Expected infix expression, got {:?}", expression)
   }
 }
