@@ -246,11 +246,24 @@ impl Parser {
   pub fn parse_return_statement(&mut self) -> Option<Statement> {
     let token = self.current_token.clone();
 
-    while !self.current_token_is(SEMICOLON) {
-      self.next_token()
-    }
+    self.next_token();
 
-    Some(Statement::ReturnStatement(ReturnStatement { token: token }))
+    let expression_or_none = self.parse_expression(precedences::LOWEST);
+
+    if let Some(expression) = expression_or_none {
+      if self.peek_token_is(SEMICOLON) {
+        self.next_token();
+      }
+
+      let return_statement = ReturnStatement {
+        token: token,
+        return_value: Box::new(expression),
+      };
+
+      Some(Statement::ReturnStatement(return_statement))
+    } else {
+      None
+    }
   }
 
   pub fn parse_expression_statement(&mut self) -> Option<Statement> {

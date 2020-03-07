@@ -43,24 +43,27 @@ fn test_let_statements() {
 
 #[test]
 fn test_return_statements() {
-  let input = "
-    return 5;
-    return 10;
-    return 12345;
-  ";
+  let tests = vec![
+    ("return 5;", LiteralValue::Integer(5)),
+    ("return 10;", LiteralValue::Integer(10)),
+    ("return 12345;", LiteralValue::Integer(12345)),
+  ];
 
-  let lexer = Lexer::new(input);
-  let mut parser = Parser::new(lexer);
+  for test in &tests {
+    let (input, return_value) = test;
 
-  let program = parser.parse_program();
+    let lexer = Lexer::new(input);
+    let mut parser = Parser::new(lexer);
 
-  assert_eq!(program.statements.len(), 3);
+    let program = parser.parse_program();
 
-  for statement in &program.statements {
-    if let Statement::ReturnStatement(return_statement) = statement {
-      assert_eq!(return_statement.token.literal, "return".to_string());
-    } else {
-      panic!("Expected return statement, got {:?}", statement)
+    for statement in &program.statements {
+      if let Statement::ReturnStatement(return_statement) = statement {
+        assert_eq!(return_statement.token.literal, "return".to_string());
+        assert_literal(&*return_statement.return_value, return_value)
+      } else {
+        panic!("Expected return statement, got {:?}", statement)
+      }
     }
   }
 }
