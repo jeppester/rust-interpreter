@@ -207,7 +207,7 @@ impl Parser {
     }
   }
 
-  pub fn parse_statement(&mut self) -> Option<Node> {
+  pub fn parse_statement(&mut self) -> Option<Statement> {
     match self.current_token.token_type {
       LET => self.parse_let_statement(),
       RETURN => self.parse_return_statement(),
@@ -215,7 +215,7 @@ impl Parser {
     }
   }
 
-  pub fn parse_let_statement(&mut self) -> Option<Node> {
+  pub fn parse_let_statement(&mut self) -> Option<Statement> {
     let token = self.current_token.clone();
 
     if !self.expect_peek(IDENT) {
@@ -237,25 +237,23 @@ impl Parser {
       self.next_token()
     }
 
-    Some(Node::Statement(Statement::LetStatement(LetStatement {
+    Some(Statement::LetStatement(LetStatement {
       token: token,
       name: name,
-    })))
+    }))
   }
 
-  pub fn parse_return_statement(&mut self) -> Option<Node> {
+  pub fn parse_return_statement(&mut self) -> Option<Statement> {
     let token = self.current_token.clone();
 
     while !self.current_token_is(SEMICOLON) {
       self.next_token()
     }
 
-    Some(Node::Statement(Statement::ReturnStatement(
-      ReturnStatement { token: token },
-    )))
+    Some(Statement::ReturnStatement(ReturnStatement { token: token }))
   }
 
-  pub fn parse_expression_statement(&mut self) -> Option<Node> {
+  pub fn parse_expression_statement(&mut self) -> Option<Statement> {
     let expression_or_none = self.parse_expression(precedences::LOWEST);
 
     if let Some(expression) = expression_or_none {
@@ -263,7 +261,7 @@ impl Parser {
         self.next_token();
       }
 
-      Some(Node::Expression(expression))
+      Some(Statement::Expression(expression))
     } else {
       None
     }

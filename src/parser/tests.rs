@@ -28,15 +28,15 @@ fn test_let_statements() {
   for (i, test) in tests.iter().enumerate() {
     let name = test;
 
-    let first_node = &program.statements[i];
+    let first_statement = &program.statements[i];
 
-    assert_eq!(first_node.token_literal(), "let".to_string());
+    assert_eq!(first_statement.token_literal(), "let".to_string());
 
-    if let Node::Statement(Statement::LetStatement(let_statement)) = first_node {
+    if let Statement::LetStatement(let_statement) = first_statement {
       assert_eq!(let_statement.name.value, name.to_string());
       assert_eq!(let_statement.name.token.literal, name.to_string());
     } else {
-      panic!("Expected let statement, got {:?}", first_node)
+      panic!("Expected let statement, got {:?}", first_statement)
     }
   }
 }
@@ -56,11 +56,11 @@ fn test_return_statements() {
 
   assert_eq!(program.statements.len(), 3);
 
-  for node in &program.statements {
-    if let Node::Statement(Statement::ReturnStatement(return_statement)) = node {
+  for statement in &program.statements {
+    if let Statement::ReturnStatement(return_statement) = statement {
       assert_eq!(return_statement.token.literal, "return".to_string());
     } else {
-      panic!("Expected return statement, got {:?}", node)
+      panic!("Expected return statement, got {:?}", statement)
     }
   }
 }
@@ -76,12 +76,12 @@ fn test_identifier_expression() {
 
   assert_eq!(program.statements.len(), 1);
 
-  let first_node = &program.statements[0];
+  let first_statement = &program.statements[0];
 
-  if let Node::Expression(expression) = first_node {
+  if let Statement::Expression(expression) = first_statement {
     assert_identifier(expression, "foobar")
   } else {
-    panic!("Expected expression node, got {:?}", first_node)
+    panic!("Expected expression statement, got {:?}", first_statement)
   }
 }
 
@@ -96,12 +96,12 @@ fn test_integer_literal_expression() {
 
   assert_eq!(program.statements.len(), 1);
 
-  let first_node = &program.statements[0];
+  let first_statement = &program.statements[0];
 
-  if let Node::Expression(expression) = first_node {
+  if let Statement::Expression(expression) = first_statement {
     assert_integer_literal(expression, &5)
   } else {
-    panic!("Expected expression node, got {:?}", first_node)
+    panic!("Expected expression statement, got {:?}", first_statement)
   }
 }
 
@@ -119,12 +119,12 @@ fn test_boolean_expression() {
 
     assert_eq!(program.statements.len(), 1);
 
-    let first_node = &program.statements[0];
+    let first_statement = &program.statements[0];
 
-    if let Node::Expression(expression) = first_node {
+    if let Statement::Expression(expression) = first_statement {
       assert_boolean(expression, value)
     } else {
-      panic!("Expected expression node, got {:?}", first_node)
+      panic!("Expected expression statement, got {:?}", first_statement)
     }
   }
 }
@@ -139,7 +139,7 @@ fn test_prefix_expressions() {
   ];
 
   for test in &tests {
-    let (input, operator, value) = test;
+    let (input, operator, right) = test;
 
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
@@ -148,13 +148,12 @@ fn test_prefix_expressions() {
 
     assert_eq!(program.statements.len(), 1);
 
-    let first_node = &program.statements[0];
+    let first_statement = &program.statements[0];
 
-    if let Node::Expression(Expression::PrefixExpression(prefix_expression)) = first_node {
-      assert_eq!(prefix_expression.operator, operator.to_string());
-      assert_literal(&*prefix_expression.right, value);
+    if let Statement::Expression(expression) = first_statement {
+      assert_prefix(expression, operator.to_string(), right)
     } else {
-      panic!("Expected prefix expression, got {:?}", first_node)
+      panic!("Expected expression statement, got {:?}", first_statement)
     }
   }
 }
@@ -240,12 +239,12 @@ fn test_infix_expressions() {
 
     assert_eq!(program.statements.len(), 1);
 
-    let first_node = &program.statements[0];
+    let first_statement = &program.statements[0];
 
-    if let Node::Expression(expression) = first_node {
+    if let Statement::Expression(expression) = first_statement {
       assert_infix(expression, left_value, operator.to_string(), right_value)
     } else {
-      panic!("Expected expression node, got {:?}", first_node)
+      panic!("Expected expression statement, got {:?}", first_statement)
     }
   }
 }
@@ -326,6 +325,15 @@ fn assert_literal(expression: &Expression, value: &LiteralValue) {
     LiteralValue::Boolean(boolean_value) => assert_boolean(expression, &boolean_value),
     LiteralValue::Identifier(identifier_value) => assert_identifier(expression, &identifier_value),
     LiteralValue::Integer(integer_value) => assert_integer_literal(expression, &integer_value),
+  }
+}
+
+fn assert_prefix(expression: &Expression, operator: String, right: &LiteralValue) {
+  if let Expression::PrefixExpression(prefix_expression) = expression {
+    assert_eq!(prefix_expression.operator, operator);
+    assert_literal(&*prefix_expression.right, right);
+  } else {
+    panic!("Expected prefix expression, got {:?}", expression)
   }
 }
 

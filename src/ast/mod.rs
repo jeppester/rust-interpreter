@@ -2,7 +2,6 @@
 mod tests;
 
 pub mod boolean;
-pub mod expression_statement;
 pub mod identifier;
 pub mod infix_expression;
 pub mod integer_literal;
@@ -12,7 +11,6 @@ pub mod return_statement;
 
 use crate::token::Literal;
 use boolean::Boolean;
-use expression_statement::ExpressionStatement;
 use identifier::Identifier;
 use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
@@ -76,7 +74,7 @@ impl Expression {
 pub enum Statement {
   LetStatement(LetStatement),
   ReturnStatement(ReturnStatement),
-  ExpressionStatement(ExpressionStatement),
+  Expression(Expression),
 }
 
 impl Statement {
@@ -84,7 +82,7 @@ impl Statement {
     match self {
       Statement::LetStatement(statement) => statement.token.literal.clone(),
       Statement::ReturnStatement(statement) => statement.token.literal.clone(),
-      Statement::ExpressionStatement(statement) => statement.token.literal.clone(),
+      Statement::Expression(expression) => expression.token_literal(),
     }
   }
 
@@ -118,35 +116,13 @@ impl Statement {
         string
       }
 
-      Statement::ExpressionStatement(statement) => statement.expression.to_string(),
-    }
-  }
-}
-
-#[derive(Debug)]
-pub enum Node {
-  Expression(Expression),
-  Statement(Statement),
-}
-
-impl Node {
-  pub fn token_literal(&self) -> Literal {
-    match self {
-      Node::Expression(expression) => expression.token_literal(),
-      Node::Statement(statement) => statement.token_literal(),
-    }
-  }
-
-  pub fn to_string(&self) -> String {
-    match self {
-      Node::Expression(expression) => expression.to_string(),
-      Node::Statement(statement) => statement.to_string(),
+      Statement::Expression(expression) => expression.to_string(),
     }
   }
 }
 
 pub struct Program {
-  pub statements: Vec<Node>,
+  pub statements: Vec<Statement>,
 }
 
 impl Program {
