@@ -2,9 +2,9 @@ use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 
-enum LiteralValue {
+enum LiteralValue<'a> {
   Boolean(bool),
-  Identifier(String),
+  Identifier(&'a str),
   Integer(i64),
 }
 
@@ -290,6 +290,88 @@ fn test_operator_precedence_parsing() {
     let program = parser.parse_program();
 
     assert_eq!(&program.to_string(), expected);
+  }
+}
+
+#[test]
+fn test_if_expression() {
+  let input = "if (x < y) { x }";
+
+  let lexer = Lexer::new(input);
+  let mut parser = Parser::new(lexer);
+
+  let program = parser.parse_program();
+
+  assert_eq!(program.statements.len(), 1);
+
+  let first_statement = &program.statements[0];
+  if let Statement::Expression(Expression::IfExpression(if_expression)) = first_statement {
+    assert_infix(
+      &if_expression.condition,
+      &LiteralValue::Identifier("x"),
+      "<".to_string(),
+      &LiteralValue::Identifier("y"),
+    );
+
+    assert_eq!(if_expression.true_block.statements.len(), 1);
+    let first_true_block_statement = &if_expression.true_block.statements[0];
+
+    if let Statement::Expression(expression) = first_true_block_statement {
+      assert_literal(expression, &LiteralValue::Identifier("x"));
+    } else {
+      panic!("Expected expression statement, got {:?}", first_statement);
+    }
+
+    if let Some(statement) = &*if_expression.false_block_or_none {
+      panic!("Expected none, got {:?}", statement);
+    }
+  } else {
+    panic!("Expected expression statement, got {:?}", first_statement);
+  }
+}
+
+#[test]
+fn test_if_else_expression() {
+  let input = "if (x < y) { x } else { y }";
+
+  let lexer = Lexer::new(input);
+  let mut parser = Parser::new(lexer);
+
+  let program = parser.parse_program();
+
+  assert_eq!(program.statements.len(), 1);
+
+  let first_statement = &program.statements[0];
+  if let Statement::Expression(Expression::IfExpression(if_expression)) = first_statement {
+    assert_infix(
+      &if_expression.condition,
+      &LiteralValue::Identifier("x"),
+      "<".to_string(),
+      &LiteralValue::Identifier("y"),
+    );
+
+    assert_eq!(if_expression.true_block.statements.len(), 1);
+    let first_true_block_statement = &if_expression.true_block.statements[0];
+
+    if let Statement::Expression(expression) = first_true_block_statement {
+      assert_literal(expression, &LiteralValue::Identifier("x"));
+    } else {
+      panic!("Expected expression statement, got {:?}", first_statement);
+    }
+
+    if let Some(false_block) = &*if_expression.false_block_or_none {
+      let first_false_block_statement = &false_block.statements[0];
+
+      if let Statement::Expression(expression) = first_false_block_statement {
+        assert_literal(expression, &LiteralValue::Identifier("y"));
+      } else {
+        panic!("Expected expression statement, got {:?}", first_statement);
+      }
+    } else {
+      panic!("Expected Some(BlockStatement), got None");
+    }
+  } else {
+    panic!("Expected expression statement, got {:?}", first_statement);
   }
 }
 

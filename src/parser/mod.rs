@@ -6,13 +6,18 @@ use std::collections::HashMap;
 use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::token::*;
+
 use boolean::Boolean;
 use identifier::Identifier;
+use if_expression::IfExpression;
 use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
-use let_statement::LetStatement;
 use prefix_expression::PrefixExpression;
+
+use block_statement::BlockStatement;
+use let_statement::LetStatement;
 use return_statement::ReturnStatement;
+
 use token_types::*;
 
 pub type Precedence = u8;
@@ -139,6 +144,48 @@ pub fn parse_grouped_expression(parser: &mut Parser) -> Option<Expression> {
   }
 }
 
+pub fn parse_if_expression(parser: &mut Parser) -> Option<Expression> {
+  let token = parser.current_token.clone();
+
+  if !parser.expect_peek(token_types::LPAREN) {
+    return None;
+  }
+
+  parser.next_token();
+
+  let condition_or_none = parser.parse_expression(precedences::LOWEST);
+
+  if let None = condition_or_none {
+    return None;
+  }
+
+  let condition = condition_or_none.unwrap();
+
+  if !parser.expect_peek(token_types::RPAREN) || !parser.expect_peek(token_types::LBRACE) {
+    return None;
+  }
+
+  let true_block = parser.parse_block_statement();
+
+  let false_block_or_none = if parser.peek_token_is(token_types::ELSE) {
+    parser.next_token();
+    if !parser.expect_peek(token_types::LBRACE) {
+      None
+    } else {
+      Some(parser.parse_block_statement())
+    }
+  } else {
+    None
+  };
+
+  Some(Expression::IfExpression(IfExpression {
+    token: token,
+    condition: Box::new(condition),
+    true_block: Box::new(true_block),
+    false_block_or_none: Box::new(false_block_or_none),
+  }))
+}
+
 impl Parser {
   pub fn new(mut lexer: Lexer) -> Self {
     let current_token = lexer.next_token();
@@ -161,6 +208,8 @@ impl Parser {
     parser.register_prefix(token_types::MINUS, parse_prefix_expression);
     parser.register_prefix(token_types::BANG, parse_prefix_expression);
     parser.register_prefix(token_types::LPAREN, parse_grouped_expression);
+
+    parser.register_prefix(token_types::IF, parse_if_expression);
 
     parser.register_infix(token_types::EQ, parse_infix_expression);
     parser.register_infix(token_types::NOT_EQ, parse_infix_expression);
@@ -204,6 +253,28 @@ impl Parser {
       }
 
       panic!();
+    }
+  }
+
+  pub fn parse_block_statement(&mut self) -> BlockStatement {
+    let token = self.current_token.clone();
+    let mut statements = vec![];
+
+    self.next_token();
+
+    while !self.current_token_is(RBRACE) && !self.current_token_is(EOF) {
+      let statement_or_none = self.parse_statement();
+
+      if let Some(statement) = statement_or_none {
+        statements.push(statement);
+      }
+
+      self.next_token();
+    }
+
+    BlockStatement {
+      token: token,
+      statements: statements,
     }
   }
 
