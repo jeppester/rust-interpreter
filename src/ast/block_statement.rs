@@ -1,5 +1,5 @@
 use crate::ast::Statement;
-use crate::token::Token;
+use crate::token::*;
 
 #[derive(Debug)]
 pub struct BlockStatement {
@@ -8,6 +8,10 @@ pub struct BlockStatement {
 }
 
 impl BlockStatement {
+  pub fn token_literal(&self) -> Literal {
+    self.token.literal.clone()
+  }
+
   pub fn to_string(&self) -> String {
     let mut string = String::new();
 

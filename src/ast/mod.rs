@@ -35,61 +35,23 @@ pub enum Expression {
 impl Expression {
   pub fn token_literal(&self) -> Literal {
     match self {
-      Expression::Identifier(expression) => expression.token.literal.clone(),
-      Expression::BooleanLiteral(boolean_literal) => boolean_literal.token.literal.clone(),
-      Expression::IntegerLiteral(integer_literal) => integer_literal.token.literal.clone(),
-      Expression::PrefixExpression(prefix_expression) => prefix_expression.token.literal.clone(),
-      Expression::InfixExpression(infix_expression) => infix_expression.token.literal.clone(),
-      Expression::IfExpression(if_expression) => if_expression.token.literal.clone(),
+      Expression::Identifier(expression) => expression.token_literal(),
+      Expression::BooleanLiteral(boolean_literal) => boolean_literal.token_literal(),
+      Expression::IntegerLiteral(integer_literal) => integer_literal.token_literal(),
+      Expression::PrefixExpression(prefix_expression) => prefix_expression.token_literal(),
+      Expression::InfixExpression(infix_expression) => infix_expression.token_literal(),
+      Expression::IfExpression(if_expression) => if_expression.token_literal(),
     }
   }
 
   pub fn to_string(&self) -> String {
     match self {
-      Expression::Identifier(expression) => expression.value.clone(),
-      Expression::IntegerLiteral(integer_literal) => integer_literal.value.to_string(),
-      Expression::BooleanLiteral(boolean_literal) => boolean_literal.value.to_string(),
-      Expression::PrefixExpression(prefix_expression) => {
-        let mut string = String::new();
-
-        string.push('(');
-        string.push_str(&prefix_expression.operator.to_string());
-        string.push_str(&prefix_expression.right.to_string());
-        string.push(')');
-
-        string
-      }
-      Expression::InfixExpression(infix_expression) => {
-        let mut string = String::new();
-
-        string.push('(');
-        string.push_str(&infix_expression.left.to_string());
-        string.push(' ');
-        string.push_str(&infix_expression.operator.to_string());
-        string.push(' ');
-        string.push_str(&infix_expression.right.to_string());
-        string.push(')');
-
-        string
-      }
-      Expression::IfExpression(if_expression) => {
-        let mut string = String::new();
-
-        string.push_str("if ");
-        string.push('(');
-        string.push_str(&if_expression.condition.to_string());
-        string.push_str(") {\n");
-        string.push_str(&*if_expression.true_block.to_string());
-
-        if let Some(false_block) = &*if_expression.false_block_or_none {
-          string.push_str("} else {\n");
-          string.push_str(&*false_block.to_string());
-        } else {
-          string.push('}');
-        }
-
-        string
-      }
+      Expression::Identifier(expression) => expression.to_string(),
+      Expression::IntegerLiteral(integer_literal) => integer_literal.to_string(),
+      Expression::BooleanLiteral(boolean_literal) => boolean_literal.to_string(),
+      Expression::PrefixExpression(prefix_expression) => prefix_expression.to_string(),
+      Expression::InfixExpression(infix_expression) => infix_expression.to_string(),
+      Expression::IfExpression(if_expression) => if_expression.to_string(),
     }
   }
 }
@@ -105,45 +67,19 @@ pub enum Statement {
 impl Statement {
   pub fn token_literal(&self) -> Literal {
     match self {
-      Statement::LetStatement(statement) => statement.token.literal.clone(),
-      Statement::ReturnStatement(statement) => statement.token.literal.clone(),
+      Statement::LetStatement(let_statement) => let_statement.token_literal(),
+      Statement::ReturnStatement(return_statement) => return_statement.token_literal(),
       Statement::Expression(expression) => expression.token_literal(),
-      Statement::BlockStatement(statement) => statement.token.literal.clone(),
+      Statement::BlockStatement(block_statement) => block_statement.token_literal(),
     }
   }
 
   pub fn to_string(&self) -> String {
     match self {
-      Statement::LetStatement(statement) => {
-        let mut string = String::new();
-
-        string.push_str(&self.token_literal());
-        string.push(' ');
-        string.push_str(&statement.name.value);
-        string.push_str(" = ");
-
-        string.push_str("[TODO: EXPRESSION]");
-
-        string.push(';');
-
-        string
-      }
-
-      Statement::ReturnStatement(_statement) => {
-        let mut string = String::new();
-
-        string.push_str(&self.token_literal());
-        string.push(' ');
-
-        string.push_str("[TODO: RETURN VALUE]");
-
-        string.push(';');
-
-        string
-      }
-
+      Statement::LetStatement(let_statement) => let_statement.to_string(),
+      Statement::ReturnStatement(return_statement) => return_statement.to_string(),
       Statement::Expression(expression) => expression.to_string(),
-      Statement::BlockStatement(statement) => statement.to_string(),
+      Statement::BlockStatement(block_statement) => block_statement.to_string(),
     }
   }
 }
