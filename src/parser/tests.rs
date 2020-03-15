@@ -376,14 +376,14 @@ fn test_if_else_expression() {
 }
 
 fn assert_boolean(expression: &Expression, value: &bool) {
-  if let Expression::Boolean(boolean) = expression {
-    assert_eq!(&boolean.value, value);
+  if let Expression::BooleanLiteral(boolean_literal) = expression {
+    assert_eq!(&boolean_literal.value, value);
     assert_eq!(
-      &boolean.token.literal,
+      &boolean_literal.token.literal,
       if *value { "true" } else { "false" }
     );
   } else {
-    panic!("Expected boolean expression, got {:?}", expression);
+    panic!("Expected boolean literal expression, got {:?}", expression);
   }
 }
 

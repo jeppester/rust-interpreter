@@ -7,7 +7,7 @@ use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::token::*;
 
-use boolean::Boolean;
+use boolean_literal::BooleanLiteral;
 use identifier::Identifier;
 use if_expression::IfExpression;
 use infix_expression::InfixExpression;
@@ -56,7 +56,7 @@ pub struct Parser {
 }
 
 pub fn parse_boolean(parser: &mut Parser) -> Option<Expression> {
-  return Some(Expression::Boolean(Boolean {
+  return Some(Expression::BooleanLiteral(BooleanLiteral {
     token: parser.current_token.clone(),
     value: parser.current_token_is(token_types::TRUE),
   }));
