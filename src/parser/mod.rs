@@ -8,6 +8,7 @@ use crate::lexer::Lexer;
 use crate::token::*;
 
 use boolean_literal::BooleanLiteral;
+use function_literal::FunctionLiteral;
 use identifier::Identifier;
 use if_expression::IfExpression;
 use infix_expression::InfixExpression;
@@ -186,6 +187,33 @@ pub fn parse_if_expression(parser: &mut Parser) -> Option<Expression> {
   }))
 }
 
+pub fn parse_function_literal(parser: &mut Parser) -> Option<Expression> {
+  let token = parser.current_token.clone();
+
+  if !parser.expect_peek(token_types::LPAREN) {
+    return None;
+  }
+
+  let arguments_or_none = parser.parse_function_arguments();
+
+  if let None = arguments_or_none {
+    return None;
+  }
+  let arguments = arguments_or_none.unwrap();
+
+  if !parser.expect_peek(token_types::LBRACE) {
+    return None;
+  }
+
+  let body = parser.parse_block_statement();
+
+  Some(Expression::FunctionLiteral(FunctionLiteral {
+    token: token,
+    arguments: arguments,
+    body: Box::new(body),
+  }))
+}
+
 impl Parser {
   pub fn new(mut lexer: Lexer) -> Self {
     let current_token = lexer.next_token();
@@ -210,6 +238,7 @@ impl Parser {
     parser.register_prefix(token_types::LPAREN, parse_grouped_expression);
 
     parser.register_prefix(token_types::IF, parse_if_expression);
+    parser.register_prefix(token_types::FUNCTION, parse_function_literal);
 
     parser.register_infix(token_types::EQ, parse_infix_expression);
     parser.register_infix(token_types::NOT_EQ, parse_infix_expression);
@@ -386,6 +415,38 @@ impl Parser {
       self.prefix_parser_error(self.current_token.token_type);
       None
     }
+  }
+
+  pub fn parse_function_arguments(&mut self) -> Option<Vec<Identifier>> {
+    let mut identifiers: Vec<Identifier> = Vec::new();
+
+    if (self.peek_token_is(token_types::RPAREN)) {
+      self.next_token();
+      return Some(identifiers);
+    }
+
+    loop {
+      if (!self.expect_peek(token_types::IDENT)) {
+        return None;
+      };
+
+      let identifier = Identifier {
+        token: self.current_token.clone(),
+        value: self.current_token.literal.clone(),
+      };
+      identifiers.push(identifier);
+
+      if self.peek_token_is(token_types::RPAREN) {
+        self.next_token();
+        break;
+      };
+
+      if (!self.expect_peek(token_types::COMMA)) {
+        return None;
+      }
+    }
+
+    Some(identifiers)
   }
 
   pub fn current_token_is(&mut self, token_type: TokenType) -> bool {

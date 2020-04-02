@@ -375,6 +375,51 @@ fn test_if_else_expression() {
   }
 }
 
+#[test]
+fn test_function_literal() {
+  let input = "fn (x, y) { x + y };";
+
+  let lexer = Lexer::new(input);
+  let mut parser = Parser::new(lexer);
+
+  let program = parser.parse_program();
+
+  assert_eq!(program.statements.len(), 1);
+
+  let first_statement = &program.statements[0];
+  if let Statement::Expression(Expression::FunctionLiteral(function_literal)) = first_statement {
+    assert_eq!(function_literal.token.literal, "fn");
+
+    assert_eq!(function_literal.arguments.len(), 2);
+    let first_argument = &function_literal.arguments[0];
+    assert_eq!(first_argument.value, "x");
+    assert_eq!(first_argument.token.literal, "x".to_string());
+
+    let second_argument = &function_literal.arguments[1];
+    assert_eq!(second_argument.value, "y");
+    assert_eq!(second_argument.token.literal, "y".to_string());
+
+    assert_eq!(function_literal.body.statements.len(), 1);
+    let first_body_statement = &function_literal.body.statements[0];
+
+    if let Statement::Expression(expression) = first_body_statement {
+      assert_infix(
+        &expression,
+        &LiteralValue::Identifier("x"),
+        "+".to_string(),
+        &LiteralValue::Identifier("y"),
+      );
+    } else {
+      panic!("Expected expression statement, got {:?}", first_statement);
+    }
+  } else {
+    panic!(
+      "Expected function litereal expression, got {:?}",
+      first_statement
+    );
+  }
+}
+
 fn assert_boolean(expression: &Expression, value: &bool) {
   if let Expression::BooleanLiteral(boolean_literal) = expression {
     assert_eq!(&boolean_literal.value, value);
