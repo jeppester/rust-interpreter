@@ -420,6 +420,37 @@ fn test_function_literal() {
   }
 }
 
+#[test]
+fn test_function_parameter_parsing() {
+  let tests = vec![
+    ("fn() {}", vec![]),
+    ("fn(x) {}", vec!["x"]),
+    ("fn(x, y, z) {}", vec!["x", "y", "z"]),
+  ];
+
+  for test in &tests {
+    let (input, identifiers) = test;
+
+    let lexer = Lexer::new(input);
+    let mut parser = Parser::new(lexer);
+
+    let program = parser.parse_program();
+    assert_eq!(program.statements.len(), 1);
+
+    let first_statement = &program.statements[0];
+    if let Statement::Expression(Expression::FunctionLiteral(function_literal)) = first_statement {
+      assert_eq!(function_literal.arguments.len(), identifiers.len());
+
+      for (i, identifier) in identifiers.iter().enumerate() {
+        let argument = &function_literal.arguments[i];
+
+        assert_eq!(argument.value, *identifier);
+        assert_eq!(argument.token.literal, identifier.to_string());
+      }
+    }
+  }
+}
+
 fn assert_boolean(expression: &Expression, value: &bool) {
   if let Expression::BooleanLiteral(boolean_literal) = expression {
     assert_eq!(&boolean_literal.value, value);
