@@ -154,13 +154,7 @@ pub fn parse_if_expression(parser: &mut Parser) -> Option<Expression> {
 
   parser.next_token();
 
-  let condition_or_none = parser.parse_expression(precedences::LOWEST);
-
-  if let None = condition_or_none {
-    return None;
-  }
-
-  let condition = condition_or_none.unwrap();
+  let condition = parser.parse_expression(precedences::LOWEST)?;
 
   if !parser.expect_peek(token_types::RPAREN) || !parser.expect_peek(token_types::LBRACE) {
     return None;
@@ -194,12 +188,7 @@ pub fn parse_function_literal(parser: &mut Parser) -> Option<Expression> {
     return None;
   }
 
-  let arguments_or_none = parser.parse_function_arguments();
-
-  if let None = arguments_or_none {
-    return None;
-  }
-  let arguments = arguments_or_none.unwrap();
+  let arguments = parser.parse_function_arguments()?;
 
   if !parser.expect_peek(token_types::LBRACE) {
     return None;
@@ -348,36 +337,28 @@ impl Parser {
 
     self.next_token();
 
-    let expression_or_none = self.parse_expression(precedences::LOWEST);
+    let expression = self.parse_expression(precedences::LOWEST)?;
 
-    if let Some(expression) = expression_or_none {
-      if self.peek_token_is(SEMICOLON) {
-        self.next_token();
-      }
-
-      let return_statement = ReturnStatement {
-        token: token,
-        return_value: Box::new(expression),
-      };
-
-      Some(Statement::ReturnStatement(return_statement))
-    } else {
-      None
+    if self.peek_token_is(SEMICOLON) {
+      self.next_token();
     }
+
+    let return_statement = ReturnStatement {
+      token: token,
+      return_value: Box::new(expression),
+    };
+
+    Some(Statement::ReturnStatement(return_statement))
   }
 
   pub fn parse_expression_statement(&mut self) -> Option<Statement> {
-    let expression_or_none = self.parse_expression(precedences::LOWEST);
+    let expression = self.parse_expression(precedences::LOWEST)?;
 
-    if let Some(expression) = expression_or_none {
-      if self.peek_token_is(SEMICOLON) {
-        self.next_token();
-      }
-
-      Some(Statement::Expression(expression))
-    } else {
-      None
+    if self.peek_token_is(SEMICOLON) {
+      self.next_token();
     }
+
+    Some(Statement::Expression(expression))
   }
 
   pub fn parse_expression(&mut self, precedence: Precedence) -> Option<Expression> {
@@ -410,7 +391,7 @@ impl Parser {
         expression = infix_parser_function(self, expression.unwrap());
       }
 
-      return expression;
+      expression
     } else {
       self.prefix_parser_error(self.current_token.token_type);
       None
