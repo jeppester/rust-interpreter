@@ -18,7 +18,7 @@ impl ReturnStatement {
     string.push_str(&self.token_literal());
     string.push(' ');
 
-    string.push_str("[TODO: RETURN VALUE]");
+    string.push_str(&self.return_value.to_string());
 
     string.push(';');
 

@@ -10,31 +10,26 @@ enum LiteralValue<'a> {
 
 #[test]
 fn test_let_statements() {
-  let input = "
-    let x = 5;
-    let y = 10;
-    let foobar = 12345;
-  ";
+  let tests = vec![
+    ("let x = 5;", "x", LiteralValue::Integer(5)),
+    ("let y = z;", "y", LiteralValue::Identifier("z")),
+    ("let z = false", "z", LiteralValue::Boolean(false)),
+  ];
 
-  let lexer = Lexer::new(input);
-  let mut parser = Parser::new(lexer);
+  for test in &tests {
+    let (input, name, value) = test;
 
-  let program = parser.parse_program();
+    let lexer = Lexer::new(input);
+    let mut parser = Parser::new(lexer);
 
-  assert_eq!(program.statements.len(), 3);
+    let program = parser.parse_program();
 
-  let tests = vec![("x"), ("y"), ("foobar")];
-
-  for (i, test) in tests.iter().enumerate() {
-    let name = test;
-
-    let first_statement = &program.statements[i];
-
-    assert_eq!(first_statement.token_literal(), "let".to_string());
+    let first_statement = &program.statements[0];
 
     if let Statement::LetStatement(let_statement) = first_statement {
       assert_eq!(let_statement.name.value, name.to_string());
       assert_eq!(let_statement.name.token.literal, name.to_string());
+      assert_literal(&let_statement.value, value)
     } else {
       panic!("Expected let statement, got {:?}", first_statement)
     }

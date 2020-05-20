@@ -298,15 +298,18 @@ impl Parser {
     };
 
     self.expect_peek(ASSIGN)?;
+    self.next_token();
 
-    // FIXME: Let statements should have expressions
-    while !self.current_token_is(SEMICOLON) {
-      self.next_token()
+    let expression = self.parse_expression(precedences::LOWEST)?;
+
+    if self.peek_token_is(SEMICOLON) {
+      self.next_token();
     }
 
     Ok(Statement::LetStatement(LetStatement {
       token: token,
       name: name,
+      value: expression,
     }))
   }
 

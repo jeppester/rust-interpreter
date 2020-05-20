@@ -1,12 +1,13 @@
 // use crate::ast::Expression;
 use crate::ast::identifier::Identifier;
+use crate::ast::Expression;
 use crate::token::*;
 
 #[derive(Debug)]
 pub struct LetStatement {
   pub token: Token,
   pub name: Identifier,
-  // pub value: Expression,
+  pub value: Expression,
 }
 
 impl LetStatement {
@@ -22,7 +23,7 @@ impl LetStatement {
     string.push_str(&self.name.value);
     string.push_str(" = ");
 
-    string.push_str("[TODO: EXPRESSION]");
+    string.push_str(&self.value.to_string());
 
     string.push(';');
 
