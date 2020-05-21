@@ -15,9 +15,16 @@ impl BlockStatement {
   pub fn to_string(&self) -> String {
     let mut string = String::new();
 
+    string.push('{');
+    string.push('\n');
+
     for statement in &self.statements {
       string.push_str(&statement.to_string());
+      string.push('\n');
     }
+
+    string.push('}');
+    string.push('\n');
 
     string
   }
