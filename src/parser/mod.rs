@@ -10,6 +10,7 @@ use crate::lexer::Lexer;
 use crate::token::*;
 
 use boolean_literal::BooleanLiteral;
+use call_expression::CallExpression;
 use function_literal::FunctionLiteral;
 use identifier::Identifier;
 use if_expression::IfExpression;
@@ -47,6 +48,7 @@ pub fn get_operator_precedence(token_type: TokenType) -> Precedence {
     MINUS => precedences::SUM,
     SLASH => precedences::PRODUCT,
     ASTERISK => precedences::PRODUCT,
+    LPAREN => precedences::CALL,
     _x => precedences::LOWEST,
   }
 }
@@ -123,6 +125,21 @@ pub fn parse_infix_expression(
     operator: operator,
     right: Box::new(right),
   }))
+}
+
+pub fn parse_call_expression(
+  parser: &mut Parser,
+  function: Expression,
+) -> Result<Expression, ParserError> {
+  let token = parser.current_token.clone();
+
+  let arguments = parser.parse_call_arguments()?;
+
+  return Ok(Expression::CallExpression(CallExpression {
+    token: token,
+    function: Box::new(function),
+    arguments: Box::new(arguments),
+  }));
 }
 
 pub fn parse_grouped_expression(parser: &mut Parser) -> Result<Expression, ParserError> {
@@ -216,6 +233,7 @@ impl Parser {
     parser.register_infix(token_types::MINUS, parse_infix_expression);
     parser.register_infix(token_types::SLASH, parse_infix_expression);
     parser.register_infix(token_types::ASTERISK, parse_infix_expression);
+    parser.register_infix(token_types::LPAREN, parse_call_expression);
 
     parser
   }
@@ -394,6 +412,30 @@ impl Parser {
     }
 
     Ok(identifiers)
+  }
+
+  pub fn parse_call_arguments(&mut self) -> Result<Vec<Expression>, ParserError> {
+    let mut arguments: Vec<Expression> = Vec::new();
+
+    if self.peek_token_is(token_types::RPAREN) {
+      self.next_token();
+      return Ok(arguments);
+    }
+
+    loop {
+      self.next_token();
+
+      arguments.push(self.parse_expression(precedences::LOWEST)?);
+
+      if self.peek_token_is(token_types::RPAREN) {
+        self.next_token();
+        break;
+      };
+
+      self.expect_peek(token_types::COMMA)?;
+    }
+
+    Ok(arguments)
   }
 
   pub fn current_token_is(&mut self, token_type: TokenType) -> bool {

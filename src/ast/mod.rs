@@ -3,6 +3,7 @@ mod tests;
 
 pub mod block_statement;
 pub mod boolean_literal;
+pub mod call_expression;
 pub mod function_literal;
 pub mod identifier;
 pub mod if_expression;
@@ -15,6 +16,7 @@ pub mod return_statement;
 use crate::token::Literal;
 use block_statement::BlockStatement;
 use boolean_literal::BooleanLiteral;
+use call_expression::CallExpression;
 use function_literal::FunctionLiteral;
 use identifier::Identifier;
 use if_expression::IfExpression;
@@ -33,6 +35,7 @@ pub enum Expression {
   InfixExpression(InfixExpression),
   IfExpression(IfExpression),
   FunctionLiteral(FunctionLiteral),
+  CallExpression(CallExpression),
 }
 
 impl Expression {
@@ -45,6 +48,7 @@ impl Expression {
       Expression::InfixExpression(infix_expression) => infix_expression.token_literal(),
       Expression::IfExpression(if_expression) => if_expression.token_literal(),
       Expression::FunctionLiteral(function_literal) => function_literal.token_literal(),
+      Expression::CallExpression(call_expression) => call_expression.token_literal(),
     }
   }
 
@@ -57,6 +61,7 @@ impl Expression {
       Expression::InfixExpression(infix_expression) => infix_expression.to_string(),
       Expression::IfExpression(if_expression) => if_expression.to_string(),
       Expression::FunctionLiteral(function_literal) => function_literal.to_string(),
+      Expression::CallExpression(call_expression) => call_expression.to_string(),
     }
   }
 }

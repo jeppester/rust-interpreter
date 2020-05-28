@@ -274,6 +274,15 @@ fn test_operator_precedence_parsing() {
     ("2 / (5 + 5)", "(2 / (5 + 5))"),
     ("-(5 + 5)", "(-(5 + 5))"),
     ("!(true == true)", "(!(true == true))"),
+    ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
+    (
+      "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+      "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+    ),
+    (
+      "add(a + b + c * d / f + g)",
+      "add((((a + b) + ((c * d) / f)) + g))",
+    ),
   ];
 
   for test in &tests {
@@ -443,6 +452,39 @@ fn test_function_parameter_parsing() {
         assert_eq!(argument.token.literal, identifier.to_string());
       }
     }
+  }
+}
+
+#[test]
+fn test_call_expression() {
+  let input = "add(1, 2 * 3, 4 + 5);";
+
+  let lexer = Lexer::new(input);
+  let mut parser = Parser::new(lexer);
+
+  let program = parser.parse_program();
+
+  assert_eq!(program.statements.len(), 1);
+
+  let first_statement = &program.statements[0];
+  if let Statement::Expression(Expression::CallExpression(call_expression)) = first_statement {
+    assert_identifier(&*call_expression.function, "add");
+    assert_eq!(call_expression.arguments.len(), 3);
+    assert_integer_literal(&call_expression.arguments[0], &1);
+    assert_infix(
+      &call_expression.arguments[1],
+      &LiteralValue::Integer(2),
+      "*",
+      &LiteralValue::Integer(3),
+    );
+    assert_infix(
+      &call_expression.arguments[2],
+      &LiteralValue::Integer(4),
+      "+",
+      &LiteralValue::Integer(5),
+    );
+  } else {
+    panic!("Expected call expression, got {:?}", first_statement);
   }
 }
 
