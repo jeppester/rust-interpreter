@@ -240,7 +240,7 @@ fn test_infix_expressions() {
     let first_statement = &program.statements[0];
 
     if let Statement::Expression(expression) = first_statement {
-      assert_infix(expression, left_value, operator.to_string(), right_value)
+      assert_infix(expression, left_value, operator, right_value)
     } else {
       panic!("Expected expression statement, got {:?}", first_statement)
     }
@@ -304,7 +304,7 @@ fn test_if_expression() {
     assert_infix(
       &if_expression.condition,
       &LiteralValue::Identifier("x"),
-      "<".to_string(),
+      "<",
       &LiteralValue::Identifier("y"),
     );
 
@@ -341,7 +341,7 @@ fn test_if_else_expression() {
     assert_infix(
       &if_expression.condition,
       &LiteralValue::Identifier("x"),
-      "<".to_string(),
+      "<",
       &LiteralValue::Identifier("y"),
     );
 
@@ -401,7 +401,7 @@ fn test_function_literal() {
       assert_infix(
         &expression,
         &LiteralValue::Identifier("x"),
-        "+".to_string(),
+        "+",
         &LiteralValue::Identifier("y"),
       );
     } else {
@@ -496,7 +496,7 @@ fn assert_prefix(expression: &Expression, operator: String, right: &LiteralValue
 fn assert_infix(
   expression: &Expression,
   left: &LiteralValue,
-  operator: String,
+  operator: &str,
   right: &LiteralValue,
 ) {
   if let Expression::InfixExpression(infix_expression) = expression {
