@@ -3,29 +3,33 @@ use std::io::prelude::*;
 use std::process;
 
 use crate::lexer::Lexer;
-use crate::token::token_types::*;
+use crate::parser::Parser;
 
 pub fn start() {
   let stdin = io::stdin();
   let mut stdout = io::stdout();
 
   loop {
-    if write!(&mut stdout, ">> ").is_err() { process::exit(1) };
-    if stdout.flush().is_err() { process::exit(1) };
+    if write!(&mut stdout, ">> ").is_err() {
+      process::exit(1)
+    };
+    if stdout.flush().is_err() {
+      process::exit(1)
+    };
 
     let mut input = String::new();
-    if stdin.read_line(&mut input).is_err() { process::exit(1) };
+    if stdin.read_line(&mut input).is_err() {
+      process::exit(1)
+    };
 
-    let mut lexer = Lexer::new(&input);
+    let lexer = Lexer::new(&input);
+    let mut parser = Parser::new(lexer);
 
-    loop {
-      let token = lexer.next_token();
+    let program_result = parser.parse_program();
 
-      if token.token_type == EOF {
-        break;
-      }
-
-      println!("Type: {}, Char: {}", token.token_type, token.literal);
+    match program_result {
+      Ok(program) => println!("{}", program.to_string()),
+      Err(_error) => continue,
     }
   }
 }
