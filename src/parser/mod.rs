@@ -244,7 +244,7 @@ impl Parser {
     self.peek_token = self.lexer.next_token();
   }
 
-  pub fn parse_program(&mut self) -> Program {
+  pub fn parse_program(&mut self) -> Result<Program, ParserError> {
     let mut program = Program { statements: vec![] };
 
     while !self.current_token_is(EOF) {
@@ -260,7 +260,7 @@ impl Parser {
 
     let error_count = self.errors.len();
     if error_count == 0 {
-      program
+      Ok(program)
     } else {
       println!("Parser has {} error(s):", error_count);
 
@@ -268,7 +268,7 @@ impl Parser {
         println!("parser error: {}", error);
       }
 
-      panic!();
+      Err(ParserError("Invalid program".to_string()))
     }
   }
 

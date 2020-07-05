@@ -22,7 +22,7 @@ fn test_let_statements() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program();
+    let program = parser.parse_program().unwrap();
 
     let first_statement = &program.statements[0];
 
@@ -50,7 +50,7 @@ fn test_return_statements() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program();
+    let program = parser.parse_program().unwrap();
 
     for statement in &program.statements {
       if let Statement::ReturnStatement(return_statement) = statement {
@@ -70,7 +70,7 @@ fn test_identifier_expression() {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program();
+  let program = parser.parse_program().unwrap();
 
   assert_eq!(program.statements.len(), 1);
 
@@ -90,7 +90,7 @@ fn test_integer_literal_expression() {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program();
+  let program = parser.parse_program().unwrap();
 
   assert_eq!(program.statements.len(), 1);
 
@@ -113,7 +113,7 @@ fn test_boolean_expression() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program();
+    let program = parser.parse_program().unwrap();
 
     assert_eq!(program.statements.len(), 1);
 
@@ -142,7 +142,7 @@ fn test_prefix_expressions() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program();
+    let program = parser.parse_program().unwrap();
 
     assert_eq!(program.statements.len(), 1);
 
@@ -233,7 +233,7 @@ fn test_infix_expressions() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program();
+    let program = parser.parse_program().unwrap();
 
     assert_eq!(program.statements.len(), 1);
 
@@ -291,7 +291,7 @@ fn test_operator_precedence_parsing() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program();
+    let program = parser.parse_program().unwrap();
 
     assert_eq!(&program.to_string(), expected);
   }
@@ -304,7 +304,7 @@ fn test_if_expression() {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program();
+  let program = parser.parse_program().unwrap();
 
   assert_eq!(program.statements.len(), 1);
 
@@ -341,7 +341,7 @@ fn test_if_else_expression() {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program();
+  let program = parser.parse_program().unwrap();
 
   assert_eq!(program.statements.len(), 1);
 
@@ -386,7 +386,7 @@ fn test_function_literal() {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program();
+  let program = parser.parse_program().unwrap();
 
   assert_eq!(program.statements.len(), 1);
 
@@ -438,7 +438,7 @@ fn test_function_parameter_parsing() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program();
+    let program = parser.parse_program().unwrap();
     assert_eq!(program.statements.len(), 1);
 
     let first_statement = &program.statements[0];
@@ -462,7 +462,7 @@ fn test_call_expression() {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program();
+  let program = parser.parse_program().unwrap();
 
   assert_eq!(program.statements.len(), 1);
 
