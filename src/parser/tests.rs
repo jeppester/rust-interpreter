@@ -1,6 +1,7 @@
 use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
+use crate::parser::ParserError;
 
 enum LiteralValue<'a> {
   Boolean(bool),
@@ -9,7 +10,7 @@ enum LiteralValue<'a> {
 }
 
 #[test]
-fn test_let_statements() {
+fn test_let_statements() -> Result<(), ParserError> {
   let tests = vec![
     ("let x = 5;", "x", LiteralValue::Integer(5)),
     ("let y = z;", "y", LiteralValue::Identifier("z")),
@@ -22,22 +23,24 @@ fn test_let_statements() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program().unwrap();
+    let program = parser.parse_program()?;
 
     let first_statement = &program.statements[0];
 
     if let Statement::LetStatement(let_statement) = first_statement {
       assert_eq!(let_statement.name.value, name.to_string());
       assert_eq!(let_statement.name.token.literal, name.to_string());
-      assert_literal(&let_statement.value, value)
+      assert_literal(&let_statement.value, value);
     } else {
-      panic!("Expected let statement, got {:?}", first_statement)
+      panic!("Expected let statement, got {:?}", first_statement);
     }
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_return_statements() {
+fn test_return_statements() -> Result<(), ParserError> {
   let tests = vec![
     ("return 5;", LiteralValue::Integer(5)),
     ("return 10;", LiteralValue::Integer(10)),
@@ -50,61 +53,67 @@ fn test_return_statements() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program().unwrap();
+    let program = parser.parse_program()?;
 
     for statement in &program.statements {
       if let Statement::ReturnStatement(return_statement) = statement {
         assert_eq!(return_statement.token.literal, "return".to_string());
-        assert_literal(&*return_statement.return_value, return_value)
+        assert_literal(&*return_statement.return_value, return_value);
       } else {
-        panic!("Expected return statement, got {:?}", statement)
+        panic!("Expected return statement, got {:?}", statement);
       }
     }
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_identifier_expression() {
+fn test_identifier_expression() -> Result<(), ParserError> {
   let input = "foobar;";
 
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program().unwrap();
+  let program = parser.parse_program()?;
 
   assert_eq!(program.statements.len(), 1);
 
   let first_statement = &program.statements[0];
 
   if let Statement::Expression(expression) = first_statement {
-    assert_identifier(expression, "foobar")
+    assert_identifier(expression, "foobar");
   } else {
-    panic!("Expected expression statement, got {:?}", first_statement)
+    panic!("Expected expression statement, got {:?}", first_statement);
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_integer_literal_expression() {
+fn test_integer_literal_expression() -> Result<(), ParserError> {
   let input = "5;";
 
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program().unwrap();
+  let program = parser.parse_program()?;
 
   assert_eq!(program.statements.len(), 1);
 
   let first_statement = &program.statements[0];
 
   if let Statement::Expression(expression) = first_statement {
-    assert_integer_literal(expression, &5)
+    assert_integer_literal(expression, &5);
   } else {
-    panic!("Expected expression statement, got {:?}", first_statement)
+    panic!("Expected expression statement, got {:?}", first_statement);
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_boolean_expression() {
+fn test_boolean_expression() -> Result<(), ParserError> {
   let tests = vec![("true;", true), ("false;", false)];
 
   for test in &tests {
@@ -113,22 +122,24 @@ fn test_boolean_expression() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program().unwrap();
+    let program = parser.parse_program()?;
 
     assert_eq!(program.statements.len(), 1);
 
     let first_statement = &program.statements[0];
 
     if let Statement::Expression(expression) = first_statement {
-      assert_boolean(expression, value)
+      assert_boolean(expression, value);
     } else {
-      panic!("Expected expression statement, got {:?}", first_statement)
+      panic!("Expected expression statement, got {:?}", first_statement);
     }
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_prefix_expressions() {
+fn test_prefix_expressions() -> Result<(), ParserError> {
   let tests = vec![
     ("!5", "!", LiteralValue::Integer(5)),
     ("-15", "-", LiteralValue::Integer(15)),
@@ -142,22 +153,24 @@ fn test_prefix_expressions() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program().unwrap();
+    let program = parser.parse_program()?;
 
     assert_eq!(program.statements.len(), 1);
 
     let first_statement = &program.statements[0];
 
     if let Statement::Expression(expression) = first_statement {
-      assert_prefix(expression, operator.to_string(), right)
+      assert_prefix(expression, operator.to_string(), right);
     } else {
-      panic!("Expected expression statement, got {:?}", first_statement)
+      panic!("Expected expression statement, got {:?}", first_statement);
     }
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_infix_expressions() {
+fn test_infix_expressions() -> Result<(), ParserError> {
   let tests = vec![
     (
       "5 + 5",
@@ -233,22 +246,24 @@ fn test_infix_expressions() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program().unwrap();
+    let program = parser.parse_program()?;
 
     assert_eq!(program.statements.len(), 1);
 
     let first_statement = &program.statements[0];
 
     if let Statement::Expression(expression) = first_statement {
-      assert_infix(expression, left_value, operator, right_value)
+      assert_infix(expression, left_value, operator, right_value);
     } else {
-      panic!("Expected expression statement, got {:?}", first_statement)
+      panic!("Expected expression statement, got {:?}", first_statement);
     }
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_operator_precedence_parsing() {
+fn test_operator_precedence_parsing() -> Result<(), ParserError> {
   let tests = vec![
     ("-a * b", "((-a) * b)"),
     ("!-a", "(!(-a))"),
@@ -291,20 +306,22 @@ fn test_operator_precedence_parsing() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program().unwrap();
+    let program = parser.parse_program()?;
 
     assert_eq!(&program.to_string(), expected);
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_if_expression() {
+fn test_if_expression() -> Result<(), ParserError> {
   let input = "if (x < y) { x }";
 
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program().unwrap();
+  let program = parser.parse_program()?;
 
   assert_eq!(program.statements.len(), 1);
 
@@ -332,16 +349,18 @@ fn test_if_expression() {
   } else {
     panic!("Expected expression statement, got {:?}", first_statement);
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_if_else_expression() {
+fn test_if_else_expression() -> Result<(), ParserError> {
   let input = "if (x < y) { x } else { y }";
 
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program().unwrap();
+  let program = parser.parse_program()?;
 
   assert_eq!(program.statements.len(), 1);
 
@@ -377,16 +396,18 @@ fn test_if_else_expression() {
   } else {
     panic!("Expected expression statement, got {:?}", first_statement);
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_function_literal() {
+fn test_function_literal() -> Result<(), ParserError> {
   let input = "fn (x, y) { x + y };";
 
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program().unwrap();
+  let program = parser.parse_program()?;
 
   assert_eq!(program.statements.len(), 1);
 
@@ -422,10 +443,12 @@ fn test_function_literal() {
       first_statement
     );
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_function_parameter_parsing() {
+fn test_function_parameter_parsing() -> Result<(), ParserError> {
   let tests = vec![
     ("fn() {}", vec![]),
     ("fn(x) {}", vec!["x"]),
@@ -438,7 +461,7 @@ fn test_function_parameter_parsing() {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
 
-    let program = parser.parse_program().unwrap();
+    let program = parser.parse_program()?;
     assert_eq!(program.statements.len(), 1);
 
     let first_statement = &program.statements[0];
@@ -453,16 +476,18 @@ fn test_function_parameter_parsing() {
       }
     }
   }
+
+  Ok(())
 }
 
 #[test]
-fn test_call_expression() {
+fn test_call_expression() -> Result<(), ParserError> {
   let input = "add(1, 2 * 3, 4 + 5);";
 
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
-  let program = parser.parse_program().unwrap();
+  let program = parser.parse_program()?;
 
   assert_eq!(program.statements.len(), 1);
 
@@ -486,6 +511,8 @@ fn test_call_expression() {
   } else {
     panic!("Expected call expression, got {:?}", first_statement);
   }
+
+  Ok(())
 }
 
 fn assert_boolean(expression: &Expression, value: &bool) {
