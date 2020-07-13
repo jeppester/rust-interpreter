@@ -36,14 +36,11 @@ fn test_let_statements() -> Result<(), ParserError> {
     let program = parser.parse_program()?;
 
     let first_statement = &program.statements[0];
+    let let_statement = match_or_fail!(first_statement, Statement::LetStatement(m) => m);
 
-    if let Statement::LetStatement(let_statement) = first_statement {
-      assert_eq!(let_statement.name.value, name.to_string());
-      assert_eq!(let_statement.name.token.literal, name.to_string());
-      assert_literal(&let_statement.value, value);
-    } else {
-      panic!("Expected let statement, got {:?}", first_statement);
-    }
+    assert_eq!(let_statement.name.value, name.to_string());
+    assert_eq!(let_statement.name.token.literal, name.to_string());
+    assert_literal(&let_statement.value, value);
   }
 
   Ok(())
@@ -66,12 +63,10 @@ fn test_return_statements() -> Result<(), ParserError> {
     let program = parser.parse_program()?;
 
     for statement in &program.statements {
-      if let Statement::ReturnStatement(return_statement) = statement {
-        assert_eq!(return_statement.token.literal, "return".to_string());
-        assert_literal(&*return_statement.return_value, return_value);
-      } else {
-        panic!("Expected return statement, got {:?}", statement);
-      }
+      let return_statement = match_or_fail!(statement, Statement::ReturnStatement(m) => m);
+
+      assert_eq!(return_statement.token.literal, "return".to_string());
+      assert_literal(&*return_statement.return_value, return_value);
     }
   }
 
@@ -90,12 +85,9 @@ fn test_identifier_expression() -> Result<(), ParserError> {
   assert_eq!(program.statements.len(), 1);
 
   let first_statement = &program.statements[0];
+  let expression = match_or_fail!(first_statement, Statement::Expression(m) => m);
 
-  if let Statement::Expression(expression) = first_statement {
-    assert_identifier(expression, "foobar");
-  } else {
-    panic!("Expected expression statement, got {:?}", first_statement);
-  }
+  assert_identifier(expression, "foobar");
 
   Ok(())
 }
@@ -112,12 +104,9 @@ fn test_integer_literal_expression() -> Result<(), ParserError> {
   assert_eq!(program.statements.len(), 1);
 
   let first_statement = &program.statements[0];
+  let expression = match_or_fail!(first_statement, Statement::Expression(m) => m);
 
-  if let Statement::Expression(expression) = first_statement {
-    assert_integer_literal(expression, &5);
-  } else {
-    panic!("Expected expression statement, got {:?}", first_statement);
-  }
+  assert_integer_literal(expression, &5);
 
   Ok(())
 }
@@ -137,12 +126,9 @@ fn test_boolean_expression() -> Result<(), ParserError> {
     assert_eq!(program.statements.len(), 1);
 
     let first_statement = &program.statements[0];
+    let expression = match_or_fail!(first_statement, Statement::Expression(m) => m);
 
-    if let Statement::Expression(expression) = first_statement {
-      assert_boolean(expression, value);
-    } else {
-      panic!("Expected expression statement, got {:?}", first_statement);
-    }
+    assert_boolean(expression, value);
   }
 
   Ok(())
@@ -168,12 +154,9 @@ fn test_prefix_expressions() -> Result<(), ParserError> {
     assert_eq!(program.statements.len(), 1);
 
     let first_statement = &program.statements[0];
+    let expression = match_or_fail!(first_statement, Statement::Expression(m) => m);
 
-    if let Statement::Expression(expression) = first_statement {
-      assert_prefix(expression, operator.to_string(), right);
-    } else {
-      panic!("Expected expression statement, got {:?}", first_statement);
-    }
+    assert_prefix(expression, operator.to_string(), right);
   }
 
   Ok(())
@@ -261,12 +244,9 @@ fn test_infix_expressions() -> Result<(), ParserError> {
     assert_eq!(program.statements.len(), 1);
 
     let first_statement = &program.statements[0];
+    let expression = match_or_fail!(first_statement, Statement::Expression(m) => m);
 
-    if let Statement::Expression(expression) = first_statement {
-      assert_infix(expression, left_value, operator, right_value);
-    } else {
-      panic!("Expected expression statement, got {:?}", first_statement);
-    }
+    assert_infix(expression, left_value, operator, right_value);
   }
 
   Ok(())
@@ -336,29 +316,24 @@ fn test_if_expression() -> Result<(), ParserError> {
   assert_eq!(program.statements.len(), 1);
 
   let first_statement = &program.statements[0];
-  if let Statement::Expression(Expression::IfExpression(if_expression)) = first_statement {
-    assert_infix(
-      &if_expression.condition,
-      &LiteralValue::Identifier("x"),
-      "<",
-      &LiteralValue::Identifier("y"),
-    );
+  let if_expression = match_or_fail!(
+    first_statement,
+    Statement::Expression(Expression::IfExpression(m)) => m
+  );
 
-    assert_eq!(if_expression.true_block.statements.len(), 1);
-    let first_true_block_statement = &if_expression.true_block.statements[0];
+  assert_infix(
+    &if_expression.condition,
+    &LiteralValue::Identifier("x"),
+    "<",
+    &LiteralValue::Identifier("y"),
+  );
 
-    if let Statement::Expression(expression) = first_true_block_statement {
-      assert_literal(expression, &LiteralValue::Identifier("x"));
-    } else {
-      panic!("Expected expression statement, got {:?}", first_statement);
-    }
+  assert_eq!(if_expression.true_block.statements.len(), 1);
+  let first_true_block_statement = &if_expression.true_block.statements[0];
+  let first_true_block_expression = match_or_fail!(first_true_block_statement, Statement::Expression(m) => m);
+  assert_literal(first_true_block_expression, &LiteralValue::Identifier("x"));
 
-    if let Some(statement) = &*if_expression.false_block_or_none {
-      panic!("Expected none, got {:?}", statement);
-    }
-  } else {
-    panic!("Expected expression statement, got {:?}", first_statement);
-  }
+  match_or_fail!(&*if_expression.false_block_or_none, None => ());
 
   Ok(())
 }
@@ -375,37 +350,27 @@ fn test_if_else_expression() -> Result<(), ParserError> {
   assert_eq!(program.statements.len(), 1);
 
   let first_statement = &program.statements[0];
-  if let Statement::Expression(Expression::IfExpression(if_expression)) = first_statement {
-    assert_infix(
-      &if_expression.condition,
-      &LiteralValue::Identifier("x"),
-      "<",
-      &LiteralValue::Identifier("y"),
-    );
+  let if_expression = match_or_fail!(
+    first_statement,
+    Statement::Expression(Expression::IfExpression(m)) => m
+  );
 
-    assert_eq!(if_expression.true_block.statements.len(), 1);
-    let first_true_block_statement = &if_expression.true_block.statements[0];
+  assert_infix(
+    &if_expression.condition,
+    &LiteralValue::Identifier("x"),
+    "<",
+    &LiteralValue::Identifier("y"),
+  );
 
-    if let Statement::Expression(expression) = first_true_block_statement {
-      assert_literal(expression, &LiteralValue::Identifier("x"));
-    } else {
-      panic!("Expected expression statement, got {:?}", first_statement);
-    }
+  assert_eq!(if_expression.true_block.statements.len(), 1);
+  let first_true_block_statement = &if_expression.true_block.statements[0];
+  let first_true_block_expression = match_or_fail!(first_true_block_statement, Statement::Expression(m) => m);
+  assert_literal(first_true_block_expression, &LiteralValue::Identifier("x"));
 
-    if let Some(false_block) = &*if_expression.false_block_or_none {
-      let first_false_block_statement = &false_block.statements[0];
-
-      if let Statement::Expression(expression) = first_false_block_statement {
-        assert_literal(expression, &LiteralValue::Identifier("y"));
-      } else {
-        panic!("Expected expression statement, got {:?}", first_statement);
-      }
-    } else {
-      panic!("Expected Some(BlockStatement), got None");
-    }
-  } else {
-    panic!("Expected expression statement, got {:?}", first_statement);
-  }
+  let false_block = match_or_fail!(&*if_expression.false_block_or_none, Some(m) => m);
+  let first_false_block_statement = &false_block.statements[0];
+  let first_false_block_expression = match_or_fail!(first_false_block_statement, Statement::Expression(m) => m);
+  assert_literal(first_false_block_expression, &LiteralValue::Identifier("y"));
 
   Ok(())
 }
@@ -422,37 +387,31 @@ fn test_function_literal() -> Result<(), ParserError> {
   assert_eq!(program.statements.len(), 1);
 
   let first_statement = &program.statements[0];
-  if let Statement::Expression(Expression::FunctionLiteral(function_literal)) = first_statement {
-    assert_eq!(function_literal.token.literal, "fn");
+  let function_literal = match_or_fail!(
+    first_statement,
+    Statement::Expression(Expression::FunctionLiteral(m)) => m
+  );
 
-    assert_eq!(function_literal.arguments.len(), 2);
-    let first_argument = &function_literal.arguments[0];
-    assert_eq!(first_argument.value, "x");
-    assert_eq!(first_argument.token.literal, "x".to_string());
+  assert_eq!(function_literal.token.literal, "fn");
 
-    let second_argument = &function_literal.arguments[1];
-    assert_eq!(second_argument.value, "y");
-    assert_eq!(second_argument.token.literal, "y".to_string());
+  assert_eq!(function_literal.arguments.len(), 2);
+  let first_argument = &function_literal.arguments[0];
+  assert_eq!(first_argument.value, "x");
+  assert_eq!(first_argument.token.literal, "x".to_string());
 
-    assert_eq!(function_literal.body.statements.len(), 1);
-    let first_body_statement = &function_literal.body.statements[0];
+  let second_argument = &function_literal.arguments[1];
+  assert_eq!(second_argument.value, "y");
+  assert_eq!(second_argument.token.literal, "y".to_string());
 
-    if let Statement::Expression(expression) = first_body_statement {
-      assert_infix(
-        &expression,
-        &LiteralValue::Identifier("x"),
-        "+",
-        &LiteralValue::Identifier("y"),
-      );
-    } else {
-      panic!("Expected expression statement, got {:?}", first_statement);
-    }
-  } else {
-    panic!(
-      "Expected function litereal expression, got {:?}",
-      first_statement
-    );
-  }
+  assert_eq!(function_literal.body.statements.len(), 1);
+  let first_body_statement = &function_literal.body.statements[0];
+  let first_body_expression = match_or_fail!(first_body_statement, Statement::Expression(m) => m);
+  assert_infix(
+    &first_body_expression,
+    &LiteralValue::Identifier("x"),
+    "+",
+    &LiteralValue::Identifier("y"),
+  );
 
   Ok(())
 }
@@ -475,15 +434,18 @@ fn test_function_parameter_parsing() -> Result<(), ParserError> {
     assert_eq!(program.statements.len(), 1);
 
     let first_statement = &program.statements[0];
-    if let Statement::Expression(Expression::FunctionLiteral(function_literal)) = first_statement {
-      assert_eq!(function_literal.arguments.len(), identifiers.len());
+    let function_literal = match_or_fail!(
+      first_statement,
+      Statement::Expression(Expression::FunctionLiteral(m)) => m
+    );
 
-      for (i, identifier) in identifiers.iter().enumerate() {
-        let argument = &function_literal.arguments[i];
+    assert_eq!(function_literal.arguments.len(), identifiers.len());
 
-        assert_eq!(argument.value, *identifier);
-        assert_eq!(argument.token.literal, identifier.to_string());
-      }
+    for (i, identifier) in identifiers.iter().enumerate() {
+      let argument = &function_literal.arguments[i];
+
+      assert_eq!(argument.value, *identifier);
+      assert_eq!(argument.token.literal, identifier.to_string());
     }
   }
 
@@ -502,25 +464,26 @@ fn test_call_expression() -> Result<(), ParserError> {
   assert_eq!(program.statements.len(), 1);
 
   let first_statement = &program.statements[0];
-  if let Statement::Expression(Expression::CallExpression(call_expression)) = first_statement {
-    assert_identifier(&*call_expression.function, "add");
-    assert_eq!(call_expression.arguments.len(), 3);
-    assert_integer_literal(&call_expression.arguments[0], &1);
-    assert_infix(
-      &call_expression.arguments[1],
-      &LiteralValue::Integer(2),
-      "*",
-      &LiteralValue::Integer(3),
-    );
-    assert_infix(
-      &call_expression.arguments[2],
-      &LiteralValue::Integer(4),
-      "+",
-      &LiteralValue::Integer(5),
-    );
-  } else {
-    panic!("Expected call expression, got {:?}", first_statement);
-  }
+  let call_expression = match_or_fail!(
+    first_statement,
+    Statement::Expression(Expression::CallExpression(m)) => m
+  );
+
+  assert_identifier(&*call_expression.function, "add");
+  assert_eq!(call_expression.arguments.len(), 3);
+  assert_integer_literal(&call_expression.arguments[0], &1);
+  assert_infix(
+    &call_expression.arguments[1],
+    &LiteralValue::Integer(2),
+    "*",
+    &LiteralValue::Integer(3),
+  );
+  assert_infix(
+    &call_expression.arguments[2],
+    &LiteralValue::Integer(4),
+    "+",
+    &LiteralValue::Integer(5),
+  );
 
   Ok(())
 }
