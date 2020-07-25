@@ -76,8 +76,8 @@ pub fn parse_identifier(parser: &mut Parser) -> Result<Expression, ParserError> 
   let value = token.literal.clone();
 
   return Ok(Expression::Identifier(Identifier {
-    token: token,
-    value: value,
+    token,
+    value,
   }));
 }
 
@@ -87,8 +87,8 @@ pub fn parse_integer_literal(parser: &mut Parser) -> Result<Expression, ParserEr
   let value = token.literal.parse::<i64>()?;
 
   Ok(Expression::IntegerLiteral(IntegerLiteral {
-    token: token,
-    value: value,
+    token,
+    value,
   }))
 }
 
@@ -101,8 +101,8 @@ pub fn parse_prefix_expression(parser: &mut Parser) -> Result<Expression, Parser
   let expression = parser.parse_expression(precedences::PREFIX)?;
 
   Ok(Expression::PrefixExpression(PrefixExpression {
-    token: token,
-    operator: operator,
+    token,
+    operator,
     right: Box::new(expression),
   }))
 }
@@ -120,9 +120,9 @@ pub fn parse_infix_expression(
   let right = parser.parse_expression(precedence)?;
 
   Ok(Expression::InfixExpression(InfixExpression {
-    token: token,
+    token,
     left: Box::new(left),
-    operator: operator,
+    operator,
     right: Box::new(right),
   }))
 }
@@ -136,7 +136,7 @@ pub fn parse_call_expression(
   let arguments = parser.parse_call_arguments()?;
 
   return Ok(Expression::CallExpression(CallExpression {
-    token: token,
+    token,
     function: Box::new(function),
     arguments: Box::new(arguments),
   }));
@@ -174,7 +174,7 @@ pub fn parse_if_expression(parser: &mut Parser) -> Result<Expression, ParserErro
   };
 
   Ok(Expression::IfExpression(IfExpression {
-    token: token,
+    token,
     condition: Box::new(condition),
     true_block: Box::new(true_block),
     false_block_or_none: Box::new(false_block_or_none),
@@ -193,8 +193,8 @@ pub fn parse_function_literal(parser: &mut Parser) -> Result<Expression, ParserE
   let body = parser.parse_block_statement();
 
   Ok(Expression::FunctionLiteral(FunctionLiteral {
-    token: token,
-    arguments: arguments,
+    token,
+    arguments,
     body: Box::new(body),
   }))
 }
@@ -205,9 +205,9 @@ impl Parser {
     let peek_token = lexer.next_token();
 
     let mut parser = Parser {
-      lexer: lexer,
-      current_token: current_token,
-      peek_token: peek_token,
+      lexer,
+      current_token,
+      peek_token,
       errors: vec![],
       prefix_parser_functions: HashMap::new(),
       infix_parser_functions: HashMap::new(),
@@ -290,8 +290,8 @@ impl Parser {
     }
 
     BlockStatement {
-      token: token,
-      statements: statements,
+      token,
+      statements,
     }
   }
 
@@ -325,8 +325,8 @@ impl Parser {
     }
 
     Ok(Statement::LetStatement(LetStatement {
-      token: token,
-      name: name,
+      token,
+      name,
       value: expression,
     }))
   }
@@ -343,7 +343,7 @@ impl Parser {
     }
 
     let return_statement = ReturnStatement {
-      token: token,
+      token,
       return_value: Box::new(expression),
     };
 

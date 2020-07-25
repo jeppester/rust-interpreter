@@ -111,25 +111,25 @@ impl Lexer {
       let literal = ch.to_string();
 
       match ch {
-        ';' => token = Token { token_type: SEMICOLON, literal: literal },
-        '{' => token = Token { token_type: LBRACE, literal: literal },
-        '}' => token = Token { token_type: RBRACE, literal: literal },
-        '(' => token = Token { token_type: LPAREN, literal: literal },
-        ')' => token = Token { token_type: RPAREN, literal: literal },
-        ',' => token = Token { token_type: COMMA, literal: literal },
-        '+' => token = Token { token_type: PLUS, literal: literal },
-        '-' => token = Token { token_type: MINUS, literal: literal },
-        '*' => token = Token { token_type: ASTERISK, literal: literal },
-        '/' => token = Token { token_type: SLASH, literal: literal },
-        '<' => token = Token { token_type: LT, literal: literal },
-        '>' => token = Token { token_type: GT, literal: literal },
+        ';' => token = Token { token_type: SEMICOLON, literal },
+        '{' => token = Token { token_type: LBRACE, literal },
+        '}' => token = Token { token_type: RBRACE, literal },
+        '(' => token = Token { token_type: LPAREN, literal },
+        ')' => token = Token { token_type: RPAREN, literal },
+        ',' => token = Token { token_type: COMMA, literal },
+        '+' => token = Token { token_type: PLUS, literal },
+        '-' => token = Token { token_type: MINUS, literal },
+        '*' => token = Token { token_type: ASTERISK, literal },
+        '/' => token = Token { token_type: SLASH, literal },
+        '<' => token = Token { token_type: LT, literal },
+        '>' => token = Token { token_type: GT, literal },
         '=' => {
           if self.peak_char() == Some('=') {
             token = Token { token_type: EQ, literal: "==".to_string() };
             self.read_char();
           }
           else {
-            token = Token { token_type: ASSIGN, literal: literal };
+            token = Token { token_type: ASSIGN, literal };
           }
         },
         '!' => {
@@ -138,7 +138,7 @@ impl Lexer {
             self.read_char();
           }
           else {
-            token = Token { token_type: BANG, literal: literal };
+            token = Token { token_type: BANG, literal };
           }
         },
         _x => {
@@ -146,15 +146,15 @@ impl Lexer {
             let literal = self.read_identifier();
             let token_type = get_token_type_for_string(&literal);
 
-            return Token { token_type: token_type, literal: literal }
+            return Token { token_type, literal }
           }
           else if self.current_char_is_digit() {
             let literal = self.read_digit();
 
-            return Token { token_type: INT, literal: literal }
+            return Token { token_type: INT, literal }
           }
           else {
-            token = Token { token_type: ILLEGAL, literal: literal }
+            token = Token { token_type: ILLEGAL, literal }
           }
         },
       }
