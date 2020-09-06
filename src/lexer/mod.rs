@@ -65,7 +65,8 @@ impl Lexer {
     }
     else {
       let ch = self.ch.unwrap();
-      ('0' <= ch && ch <= '9')
+
+      '0' <= ch && ch <= '9'
     }
   }
 
