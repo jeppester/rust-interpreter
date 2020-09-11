@@ -1,3 +1,5 @@
+mod test_support;
+
 mod token;
 mod lexer;
 mod parser;

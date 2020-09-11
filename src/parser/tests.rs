@@ -9,16 +9,6 @@ enum LiteralValue<'a> {
   Integer(i64),
 }
 
-#[macro_export]
-macro_rules! match_or_fail {
-    ($expression:expr, $matcher:pat => $result:expr) => {
-        match $expression {
-            $matcher => $result,
-            ref e => panic!("Expected match for:\n\t{}\nGot:\n\t{:?}", stringify!($matcher), e),
-        }
-    }
-}
-
 #[test]
 fn test_let_statements() -> Result<(), ParserError> {
   let tests = vec![
