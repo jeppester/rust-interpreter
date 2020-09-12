@@ -4,6 +4,7 @@ use std::process;
 
 use crate::lexer::Lexer;
 use crate::parser::Parser;
+use crate::eval::eval;
 
 pub fn start() {
   let stdin = io::stdin();
@@ -28,8 +29,18 @@ pub fn start() {
     let program_result = parser.parse_program();
 
     match program_result {
-      Ok(program) => println!("{}", program.to_string()),
       Err(_error) => continue,
+      Ok(program) => {
+        let eval_result = eval(&program);
+
+        match eval_result {
+          Err(error) => {
+            println!("Evaluation error {:?}", error);
+            continue
+          },
+          Ok(object) => println!("{}", object.inspect())
+        }
+      },
     }
   }
 }
