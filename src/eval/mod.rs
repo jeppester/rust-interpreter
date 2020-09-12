@@ -33,10 +33,10 @@ impl EvalObject for Program {
 impl EvalObject for Statement {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
     match &self {
-      Statement::LetStatement(_) => Err(EvalError::not_implemented()),
-      Statement::ReturnStatement(_) => Err(EvalError::not_implemented()),
+      Statement::LetStatement(_let_statement) => Err(EvalError::not_implemented("LetStatement")),
+      Statement::ReturnStatement(_return_statement) => Err(EvalError::not_implemented("ReturnStatement")),
       Statement::Expression(expression) => expression.eval(),
-      Statement::BlockStatement(_) => Err(EvalError::not_implemented()),
+      Statement::BlockStatement(_block_statement) => Err(EvalError::not_implemented("BlockStatement")),
     }
   }
 }
@@ -44,14 +44,14 @@ impl EvalObject for Statement {
 impl EvalObject for Expression {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
     match &self {
-      Expression::Identifier(expression) => Err(EvalError::not_implemented()),
-      Expression::BooleanLiteral(boolean_literal) => Err(EvalError::not_implemented()),
+      Expression::Identifier(_expression) => Err(EvalError::not_implemented("Expression")),
+      Expression::BooleanLiteral(_boolean_literal) => Err(EvalError::not_implemented("BooleanLiteral")),
       Expression::IntegerLiteral(integer_literal) => integer_literal.eval(),
-      Expression::PrefixExpression(prefix_expression) => Err(EvalError::not_implemented()),
-      Expression::InfixExpression(infix_expression) => Err(EvalError::not_implemented()),
-      Expression::IfExpression(if_expression) => Err(EvalError::not_implemented()),
-      Expression::FunctionLiteral(function_literal) => Err(EvalError::not_implemented()),
-      Expression::CallExpression(call_expression) => Err(EvalError::not_implemented()),
+      Expression::PrefixExpression(_prefix_expression) => Err(EvalError::not_implemented("PrefixExpression")),
+      Expression::InfixExpression(_infix_expression) => Err(EvalError::not_implemented("InfixExpression")),
+      Expression::IfExpression(_if_expression) => Err(EvalError::not_implemented("IfExpression")),
+      Expression::FunctionLiteral(_function_literal) => Err(EvalError::not_implemented("FunctionLiteral")),
+      Expression::CallExpression(_call_expression) => Err(EvalError::not_implemented("CallExpression")),
     }
   }
 }

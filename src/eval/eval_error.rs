@@ -3,8 +3,8 @@ use std::fmt;
 pub struct EvalError(pub String);
 
 impl EvalError {
-  pub fn not_implemented() -> Self {
-    EvalError("Not implemented".to_string())
+  pub fn not_implemented(feature_name: &str) -> Self {
+    EvalError(format!("Not implemented: {}", feature_name))
   }
 }
 
