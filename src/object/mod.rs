@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug)]
 pub enum ObjectType {
   Integer,
@@ -15,12 +17,13 @@ impl ObjectType {
   }
 }
 
-pub trait Object {
+pub trait Object: fmt::Debug {
   fn get_type(&self) -> ObjectType;
   fn inspect(&self) -> String;
 }
 
 // Integer
+#[derive(Debug)]
 pub struct Integer {
   pub value: i64,
 }
@@ -36,6 +39,7 @@ impl Object for Integer {
 }
 
 // Boolean
+#[derive(Debug)]
 pub struct Boolean {
   pub value: bool,
 }
@@ -51,6 +55,7 @@ impl Object for Boolean {
 }
 
 // Null
+#[derive(Debug)]
 pub struct Null;
 
 impl Object for Null {

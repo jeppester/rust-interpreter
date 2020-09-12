@@ -2,10 +2,9 @@ use crate::eval::*;
 use crate::lexer::*;
 use crate::parser::*;
 use crate::object::*;
-use crate::parser::parser_error::ParserError;
 
 #[test]
-fn test_eval_integer_expression() -> Result<(), ParserError> {
+fn test_eval_integer_expression() -> Result<(), String> {
   let tests = vec![
     ("5", "5"),
     ("10", "10"),
@@ -13,19 +12,19 @@ fn test_eval_integer_expression() -> Result<(), ParserError> {
 
   for test in &tests {
     let (input, result) = test;
-    let result_object = test_eval(input)?;
+    let result_object = test_eval(input);
     test_integer_object(&result_object, result);
   }
 
   Ok(())
 }
 
-fn test_eval(input: &str) -> Result<Box<dyn Object>, ParserError> {
+fn test_eval(input: &str) -> Box<dyn Object> {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
-  let program = parser.parse_program()?;
 
-  Ok(eval(&program))
+  let program = match_or_fail!(parser.parse_program(), Ok(m) => m);
+  match_or_fail!(eval(&program), Ok(m) => m)
 }
 
 fn test_integer_object(object: &Box<dyn Object>, result: &str) {
