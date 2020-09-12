@@ -19,6 +19,22 @@ fn test_eval_integer_expression() -> Result<(), String> {
   Ok(())
 }
 
+#[test]
+fn test_eval_boolean_expression() -> Result<(), String> {
+  let tests = vec![
+    ("true", "true"),
+    ("false", "false"),
+  ];
+
+  for test in &tests {
+    let (input, result) = test;
+    let result_object = test_eval(input);
+    test_boolean_object(&result_object, result);
+  }
+
+  Ok(())
+}
+
 fn test_eval(input: &str) -> Box<dyn Object> {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
@@ -29,5 +45,10 @@ fn test_eval(input: &str) -> Box<dyn Object> {
 
 fn test_integer_object(object: &Box<dyn Object>, result: &str) {
   match_or_fail!(object.get_type(), ObjectType::Integer => ());
+  assert_eq!(object.inspect(), result);
+}
+
+fn test_boolean_object(object: &Box<dyn Object>, result: &str) {
+  match_or_fail!(object.get_type(), ObjectType::Boolean => ());
   assert_eq!(object.inspect(), result);
 }

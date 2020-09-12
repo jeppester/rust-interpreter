@@ -7,7 +7,7 @@ use crate::ast::*;
 use crate::object::*;
 use eval_error::EvalError;
 
-// use boolean_literal::BooleanLiteral;
+use boolean_literal::BooleanLiteral;
 // use call_expression::CallExpression;
 // use function_literal::FunctionLiteral;
 // use identifier::Identifier;
@@ -45,7 +45,7 @@ impl EvalObject for Expression {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
     match &self {
       Expression::Identifier(_expression) => Err(EvalError::not_implemented("Expression")),
-      Expression::BooleanLiteral(_boolean_literal) => Err(EvalError::not_implemented("BooleanLiteral")),
+      Expression::BooleanLiteral(boolean_literal) => boolean_literal.eval(),
       Expression::IntegerLiteral(integer_literal) => integer_literal.eval(),
       Expression::PrefixExpression(_prefix_expression) => Err(EvalError::not_implemented("PrefixExpression")),
       Expression::InfixExpression(_infix_expression) => Err(EvalError::not_implemented("InfixExpression")),
@@ -59,6 +59,12 @@ impl EvalObject for Expression {
 impl EvalObject for IntegerLiteral {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
     Ok(Box::new(Integer { value: self.value.clone() }))
+  }
+}
+
+impl EvalObject for BooleanLiteral {
+  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
+    Ok(Box::new(Boolean { value: self.value.clone() }))
   }
 }
 
