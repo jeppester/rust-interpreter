@@ -21,6 +21,7 @@ use integer_literal::IntegerLiteral;
 
 pub const TRUE: Boolean = Boolean { value: true };
 pub const FALSE: Boolean = Boolean { value: false };
+pub const NULL: Null = Null;
 
 pub trait EvalObject {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError>;
