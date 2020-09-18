@@ -5,6 +5,7 @@ mod tests;
 
 use crate::ast::*;
 use crate::object::*;
+use crate::token::*;
 use eval_error::EvalError;
 
 use boolean_literal::BooleanLiteral;
@@ -14,7 +15,7 @@ use boolean_literal::BooleanLiteral;
 // use if_expression::IfExpression;
 // use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
-// use prefix_expression::PrefixExpression;
+use prefix_expression::PrefixExpression;
 // use block_statement::BlockStatement;
 // use let_statement::LetStatement;
 // use return_statement::ReturnStatement;
@@ -50,7 +51,7 @@ impl EvalObject for Expression {
       Expression::Identifier(_expression) => Err(EvalError::not_implemented("Expression")),
       Expression::BooleanLiteral(boolean_literal) => boolean_literal.eval(),
       Expression::IntegerLiteral(integer_literal) => integer_literal.eval(),
-      Expression::PrefixExpression(_prefix_expression) => Err(EvalError::not_implemented("PrefixExpression")),
+      Expression::PrefixExpression(prefix_expression) => prefix_expression.eval(),
       Expression::InfixExpression(_infix_expression) => Err(EvalError::not_implemented("InfixExpression")),
       Expression::IfExpression(_if_expression) => Err(EvalError::not_implemented("IfExpression")),
       Expression::FunctionLiteral(_function_literal) => Err(EvalError::not_implemented("FunctionLiteral")),
@@ -73,6 +74,26 @@ impl EvalObject for BooleanLiteral {
     else {
       Ok(Box::new(FALSE_OBJECT))
     }
+  }
+}
+
+impl EvalObject for PrefixExpression {
+  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
+    match self.operator.as_str() {
+      token_types::BANG => eval_bang_operator_expression(&self.right),
+      x => Err(EvalError::not_implemented(&format!("PrefixExpression for operator: {}", x))),
+    }
+  }
+}
+
+fn eval_bang_operator_expression(right: &Box<Expression>) -> Result<Box<dyn Object>, EvalError> {
+  let right_object = right.eval()?;
+
+  if *right_object.get_boolean_value()? {
+    Ok(Box::new(FALSE_OBJECT))
+  }
+  else {
+    Ok(Box::new(TRUE_OBJECT))
   }
 }
 

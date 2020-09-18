@@ -35,6 +35,29 @@ fn test_eval_boolean_expression() -> Result<(), String> {
   Ok(())
 }
 
+#[test]
+fn test_eval_bang_operator() -> Result<(), String> {
+  let tests = vec![
+    ("!true", "false"),
+    ("!false", "true"),
+    ("!5", "false"),
+    ("!0", "true"),
+    ("!!true", "true"),
+    ("!!false", "false"),
+    ("!!5", "true"),
+    ("!!0", "false"),
+  ];
+
+  for test in &tests {
+    let (input, result) = test;
+    let result_object = test_eval(input);
+    println!("input: {}, result: {}", input, result);
+    test_boolean_object(&result_object, result);
+  }
+
+  Ok(())
+}
+
 fn test_eval(input: &str) -> Box<dyn Object> {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
