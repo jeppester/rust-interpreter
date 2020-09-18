@@ -68,12 +68,7 @@ impl EvalObject for IntegerLiteral {
 
 impl EvalObject for BooleanLiteral {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
-    if self.value {
-      Ok(Box::new(TRUE_OBJECT))
-    }
-    else {
-      Ok(Box::new(FALSE_OBJECT))
-    }
+    Ok(native_boolean_to_boolean_object(self.value))
   }
 }
 
@@ -89,13 +84,7 @@ impl EvalObject for PrefixExpression {
 
 fn eval_bang_operator_expression(right: &Box<Expression>) -> Result<Box<dyn Object>, EvalError> {
   let right_object = right.eval()?;
-
-  if *right_object.get_boolean_value()? {
-    Ok(Box::new(FALSE_OBJECT))
-  }
-  else {
-    Ok(Box::new(TRUE_OBJECT))
-  }
+  Ok(native_boolean_to_boolean_object(!*right_object.get_boolean_value()?))
 }
 
 fn eval_minus_operator_expression(right: &Box<Expression>) -> Result<Box<dyn Object>, EvalError> {
@@ -103,6 +92,15 @@ fn eval_minus_operator_expression(right: &Box<Expression>) -> Result<Box<dyn Obj
   let numeric_value = right_object.get_numeric_value()?;
 
   Ok(Box::new(Integer { value: -numeric_value }))
+}
+
+fn native_boolean_to_boolean_object(boolean: bool) -> Box<dyn Object> {
+  if boolean {
+    Box::new(TRUE_OBJECT)
+  }
+  else {
+    Box::new(FALSE_OBJECT)
+  }
 }
 
 pub fn eval(node: &impl EvalObject) -> Result<Box<dyn Object>, EvalError> {
