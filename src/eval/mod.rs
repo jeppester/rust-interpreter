@@ -48,7 +48,7 @@ impl EvalObject for Statement {
 impl EvalObject for Expression {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
     match &self {
-      Expression::Identifier(_expression) => Err(EvalError::not_implemented("Expression")),
+      Expression::Identifier(_expression) => Err(EvalError::not_implemented("Identifier")),
       Expression::BooleanLiteral(boolean_literal) => boolean_literal.eval(),
       Expression::IntegerLiteral(integer_literal) => integer_literal.eval(),
       Expression::PrefixExpression(prefix_expression) => prefix_expression.eval(),
