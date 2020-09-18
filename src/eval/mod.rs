@@ -101,6 +101,7 @@ impl EvalObject for InfixExpression {
 
     match left_object.get_type() {
       ObjectType::Integer => eval_integer_infix_expression(&self.operator, left_object, right_object),
+      ObjectType::Boolean => eval_boolean_infix_expression(&self.operator, left_object, right_object),
       x => return Err(EvalError::not_implemented(&format!("InfixExpression for object type: {:?}", x))),
     }
   }
@@ -117,6 +118,17 @@ fn eval_integer_infix_expression(operator: &str, left: Box<dyn Object>, right: B
     token_types::SLASH => Ok(Box::new(Integer { value: left_value / right_value })),
     token_types::LT => Ok(native_boolean_to_boolean_object(left_value < right_value)),
     token_types::GT => Ok(native_boolean_to_boolean_object(left_value > right_value)),
+    token_types::EQ => Ok(native_boolean_to_boolean_object(left_value == right_value)),
+    token_types::NOT_EQ => Ok(native_boolean_to_boolean_object(left_value != right_value)),
+    x => Err(EvalError::not_implemented(&format!("InfixExpression for operator: {}", x))),
+  }
+}
+
+fn eval_boolean_infix_expression(operator: &str, left: Box<dyn Object>, right: Box<dyn Object>) -> Result<Box<dyn Object>, EvalError> {
+  let left_value = left.get_boolean_value()?;
+  let right_value = right.get_boolean_value()?;
+
+  match operator {
     token_types::EQ => Ok(native_boolean_to_boolean_object(left_value == right_value)),
     token_types::NOT_EQ => Ok(native_boolean_to_boolean_object(left_value != right_value)),
     x => Err(EvalError::not_implemented(&format!("InfixExpression for operator: {}", x))),
