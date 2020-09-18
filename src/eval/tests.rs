@@ -8,6 +8,8 @@ fn test_eval_integer_expression() -> Result<(), String> {
   let tests = vec![
     ("5", 5),
     ("10", 10),
+    ("-5", -5),
+    ("-10", -10),
   ];
 
   for test in &tests {

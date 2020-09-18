@@ -81,6 +81,7 @@ impl EvalObject for PrefixExpression {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
     match self.operator.as_str() {
       token_types::BANG => eval_bang_operator_expression(&self.right),
+      token_types::MINUS => eval_minus_operator_expression(&self.right),
       x => Err(EvalError::not_implemented(&format!("PrefixExpression for operator: {}", x))),
     }
   }
@@ -95,6 +96,13 @@ fn eval_bang_operator_expression(right: &Box<Expression>) -> Result<Box<dyn Obje
   else {
     Ok(Box::new(TRUE_OBJECT))
   }
+}
+
+fn eval_minus_operator_expression(right: &Box<Expression>) -> Result<Box<dyn Object>, EvalError> {
+  let right_object = right.eval()?;
+  let numeric_value = right_object.get_numeric_value()?;
+
+  Ok(Box::new(Integer { value: -numeric_value }))
 }
 
 pub fn eval(node: &impl EvalObject) -> Result<Box<dyn Object>, EvalError> {
