@@ -13,7 +13,7 @@ use boolean_literal::BooleanLiteral;
 // use function_literal::FunctionLiteral;
 // use identifier::Identifier;
 // use if_expression::IfExpression;
-// use infix_expression::InfixExpression;
+use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
 use prefix_expression::PrefixExpression;
 // use block_statement::BlockStatement;
@@ -52,7 +52,7 @@ impl EvalObject for Expression {
       Expression::BooleanLiteral(boolean_literal) => boolean_literal.eval(),
       Expression::IntegerLiteral(integer_literal) => integer_literal.eval(),
       Expression::PrefixExpression(prefix_expression) => prefix_expression.eval(),
-      Expression::InfixExpression(_infix_expression) => Err(EvalError::not_implemented("InfixExpression")),
+      Expression::InfixExpression(infix_expression) => infix_expression.eval(),
       Expression::IfExpression(_if_expression) => Err(EvalError::not_implemented("IfExpression")),
       Expression::FunctionLiteral(_function_literal) => Err(EvalError::not_implemented("FunctionLiteral")),
       Expression::CallExpression(_call_expression) => Err(EvalError::not_implemented("CallExpression")),
@@ -92,6 +92,35 @@ fn eval_minus_operator_expression(right: &Box<Expression>) -> Result<Box<dyn Obj
   let numeric_value = right_object.get_numeric_value()?;
 
   Ok(Box::new(Integer { value: -numeric_value }))
+}
+
+impl EvalObject for InfixExpression {
+  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
+    let left_object = self.left.eval()?;
+    let right_object = self.right.eval()?;
+
+    match left_object.get_type() {
+      ObjectType::Integer => eval_integer_infix_expression(&self.operator, left_object, right_object),
+      x => return Err(EvalError::not_implemented(&format!("InfixExpression for object type: {:?}", x))),
+    }
+  }
+}
+
+fn eval_integer_infix_expression(operator: &str, left: Box<dyn Object>, right: Box<dyn Object>) -> Result<Box<dyn Object>, EvalError> {
+  let left_value = left.get_numeric_value()?;
+  let right_value = right.get_numeric_value()?;
+
+  match operator {
+    token_types::PLUS => Ok(Box::new(Integer { value: left_value + right_value })),
+    token_types::MINUS => Ok(Box::new(Integer { value: left_value - right_value })),
+    token_types::ASTERISK => Ok(Box::new(Integer { value: left_value * right_value })),
+    token_types::SLASH => Ok(Box::new(Integer { value: left_value / right_value })),
+    token_types::LT => Ok(native_boolean_to_boolean_object(left_value < right_value)),
+    token_types::GT => Ok(native_boolean_to_boolean_object(left_value > right_value)),
+    token_types::EQ => Ok(native_boolean_to_boolean_object(left_value == right_value)),
+    token_types::NOT_EQ => Ok(native_boolean_to_boolean_object(left_value != right_value)),
+    x => Err(EvalError::not_implemented(&format!("InfixExpression for operator: {}", x))),
+  }
 }
 
 fn native_boolean_to_boolean_object(boolean: bool) -> Box<dyn Object> {
