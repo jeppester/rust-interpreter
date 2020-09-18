@@ -19,9 +19,9 @@ use integer_literal::IntegerLiteral;
 // use let_statement::LetStatement;
 // use return_statement::ReturnStatement;
 
-pub const TRUE: Boolean = Boolean { value: true };
-pub const FALSE: Boolean = Boolean { value: false };
-pub const NULL: Null = Null;
+pub const TRUE_OBJECT: Boolean = Boolean { value: true };
+pub const FALSE_OBJECT: Boolean = Boolean { value: false };
+pub const NULL_OBJECT: Null = Null;
 
 pub trait EvalObject {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError>;
@@ -68,10 +68,10 @@ impl EvalObject for IntegerLiteral {
 impl EvalObject for BooleanLiteral {
   fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
     if self.value {
-      Ok(Box::new(TRUE))
+      Ok(Box::new(TRUE_OBJECT))
     }
     else {
-      Ok(Box::new(FALSE))
+      Ok(Box::new(FALSE_OBJECT))
     }
   }
 }
