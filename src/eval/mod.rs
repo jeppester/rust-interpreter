@@ -20,22 +20,21 @@ use prefix_expression::PrefixExpression;
 // use let_statement::LetStatement;
 // use return_statement::ReturnStatement;
 
-pub const TRUE_OBJECT: Boolean = Boolean { value: true };
-pub const FALSE_OBJECT: Boolean = Boolean { value: false };
-pub const NULL_OBJECT: Null = Null;
+pub const TRUE_OBJECT: Object = Object::Boolean(true);
+pub const FALSE_OBJECT: Object = Object::Boolean(false);
 
 pub trait EvalObject {
-  fn eval(&self) -> Result<Box<dyn Object>, EvalError>;
+  fn eval(&self) -> Result<Object, EvalError>;
 }
 
 impl EvalObject for Program {
-  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
+  fn eval(&self) -> Result<Object, EvalError> {
     eval_statements(&self.statements)
   }
 }
 
 impl EvalObject for Statement {
-  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
+  fn eval(&self) -> Result<Object, EvalError> {
     match &self {
       Statement::LetStatement(_let_statement) => Err(EvalError::not_implemented("LetStatement")),
       Statement::ReturnStatement(_return_statement) => Err(EvalError::not_implemented("ReturnStatement")),
@@ -46,7 +45,7 @@ impl EvalObject for Statement {
 }
 
 impl EvalObject for Expression {
-  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
+  fn eval(&self) -> Result<Object, EvalError> {
     match &self {
       Expression::Identifier(_expression) => Err(EvalError::not_implemented("Identifier")),
       Expression::BooleanLiteral(boolean_literal) => boolean_literal.eval(),
@@ -61,19 +60,19 @@ impl EvalObject for Expression {
 }
 
 impl EvalObject for IntegerLiteral {
-  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
-    Ok(Box::new(Integer { value: self.value.clone() }))
+  fn eval(&self) -> Result<Object, EvalError> {
+    Ok(Object::Integer(self.value.clone()))
   }
 }
 
 impl EvalObject for BooleanLiteral {
-  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
+  fn eval(&self) -> Result<Object, EvalError> {
     Ok(native_boolean_to_boolean_object(self.value))
   }
 }
 
 impl EvalObject for PrefixExpression {
-  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
+  fn eval(&self) -> Result<Object, EvalError> {
     match self.operator.as_str() {
       token_types::BANG => eval_bang_operator_expression(&self.right),
       token_types::MINUS => eval_minus_operator_expression(&self.right),
@@ -82,40 +81,41 @@ impl EvalObject for PrefixExpression {
   }
 }
 
-fn eval_bang_operator_expression(right: &Box<Expression>) -> Result<Box<dyn Object>, EvalError> {
+fn eval_bang_operator_expression(right: &Box<Expression>) -> Result<Object, EvalError> {
   let right_object = right.eval()?;
+
   Ok(native_boolean_to_boolean_object(!*right_object.get_boolean_value()?))
 }
 
-fn eval_minus_operator_expression(right: &Box<Expression>) -> Result<Box<dyn Object>, EvalError> {
+fn eval_minus_operator_expression(right: &Box<Expression>) -> Result<Object, EvalError> {
   let right_object = right.eval()?;
   let numeric_value = right_object.get_numeric_value()?;
 
-  Ok(Box::new(Integer { value: -numeric_value }))
+  Ok(Object::Integer(-numeric_value))
 }
 
 impl EvalObject for InfixExpression {
-  fn eval(&self) -> Result<Box<dyn Object>, EvalError> {
+  fn eval(&self) -> Result<Object, EvalError> {
     let left_object = self.left.eval()?;
     let right_object = self.right.eval()?;
 
-    match left_object.get_type() {
-      ObjectType::Integer => eval_integer_infix_expression(&self.operator, left_object, right_object),
-      ObjectType::Boolean => eval_boolean_infix_expression(&self.operator, left_object, right_object),
+    match left_object {
+      Object::Integer(_) => eval_integer_infix_expression(&self.operator, left_object, right_object),
+      Object::Boolean(_) => eval_boolean_infix_expression(&self.operator, left_object, right_object),
       x => return Err(EvalError::not_implemented(&format!("InfixExpression for object type: {:?}", x))),
     }
   }
 }
 
-fn eval_integer_infix_expression(operator: &str, left: Box<dyn Object>, right: Box<dyn Object>) -> Result<Box<dyn Object>, EvalError> {
+fn eval_integer_infix_expression(operator: &str, left: Object, right: Object) -> Result<Object, EvalError> {
   let left_value = left.get_numeric_value()?;
   let right_value = right.get_numeric_value()?;
 
   match operator {
-    token_types::PLUS => Ok(Box::new(Integer { value: left_value + right_value })),
-    token_types::MINUS => Ok(Box::new(Integer { value: left_value - right_value })),
-    token_types::ASTERISK => Ok(Box::new(Integer { value: left_value * right_value })),
-    token_types::SLASH => Ok(Box::new(Integer { value: left_value / right_value })),
+    token_types::PLUS => Ok(Object::Integer(left_value + right_value)),
+    token_types::MINUS => Ok(Object::Integer(left_value - right_value)),
+    token_types::ASTERISK => Ok(Object::Integer(left_value * right_value)),
+    token_types::SLASH => Ok(Object::Integer(left_value / right_value)),
     token_types::LT => Ok(native_boolean_to_boolean_object(left_value < right_value)),
     token_types::GT => Ok(native_boolean_to_boolean_object(left_value > right_value)),
     token_types::EQ => Ok(native_boolean_to_boolean_object(left_value == right_value)),
@@ -124,7 +124,7 @@ fn eval_integer_infix_expression(operator: &str, left: Box<dyn Object>, right: B
   }
 }
 
-fn eval_boolean_infix_expression(operator: &str, left: Box<dyn Object>, right: Box<dyn Object>) -> Result<Box<dyn Object>, EvalError> {
+fn eval_boolean_infix_expression(operator: &str, left: Object, right: Object) -> Result<Object, EvalError> {
   let left_value = left.get_boolean_value()?;
   let right_value = right.get_boolean_value()?;
 
@@ -135,21 +135,21 @@ fn eval_boolean_infix_expression(operator: &str, left: Box<dyn Object>, right: B
   }
 }
 
-fn native_boolean_to_boolean_object(boolean: bool) -> Box<dyn Object> {
+fn native_boolean_to_boolean_object(boolean: bool) -> Object {
   if boolean {
-    Box::new(TRUE_OBJECT)
+    TRUE_OBJECT
   }
   else {
-    Box::new(FALSE_OBJECT)
+    FALSE_OBJECT
   }
 }
 
-pub fn eval(node: &impl EvalObject) -> Result<Box<dyn Object>, EvalError> {
+pub fn eval(node: &impl EvalObject) -> Result<Object, EvalError> {
   node.eval()
 }
 
-pub fn eval_statements(statements: &Vec<Statement>) -> Result<Box<dyn Object>, EvalError> {
-  let mut result: Result<Box<dyn Object>, EvalError> = Ok(Box::new(NULL_OBJECT));
+pub fn eval_statements(statements: &Vec<Statement>) -> Result<Object, EvalError> {
+  let mut result: Result<Object, EvalError> = Ok(Object::Null);
 
   for statement in statements {
     result = eval(statement);
