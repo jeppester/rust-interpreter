@@ -149,7 +149,7 @@ pub fn eval(node: &impl EvalObject) -> Result<Box<dyn Object>, EvalError> {
 }
 
 pub fn eval_statements(statements: &Vec<Statement>) -> Result<Box<dyn Object>, EvalError> {
-  let mut result: Result<Box<dyn Object>, EvalError> = Ok(Box::new(Null {}));
+  let mut result: Result<Box<dyn Object>, EvalError> = Ok(Box::new(NULL_OBJECT));
 
   for statement in statements {
     result = eval(statement);
