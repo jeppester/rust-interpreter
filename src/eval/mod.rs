@@ -16,7 +16,7 @@ use boolean_literal::BooleanLiteral;
 use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
 use prefix_expression::PrefixExpression;
-// use block_statement::BlockStatement;
+use block_statement::BlockStatement;
 // use let_statement::LetStatement;
 // use return_statement::ReturnStatement;
 
@@ -39,7 +39,7 @@ impl EvalObject for Statement {
       Statement::LetStatement(_let_statement) => Err(EvalError::not_implemented("LetStatement")),
       Statement::ReturnStatement(_return_statement) => Err(EvalError::not_implemented("ReturnStatement")),
       Statement::Expression(expression) => expression.eval(),
-      Statement::BlockStatement(_block_statement) => Err(EvalError::not_implemented("BlockStatement")),
+      Statement::BlockStatement(block_statement) => block_statement.eval(),
     }
   }
 }
@@ -78,6 +78,12 @@ impl EvalObject for PrefixExpression {
       token_types::MINUS => eval_minus_operator_expression(&self.right),
       x => Err(EvalError::not_implemented(&format!("PrefixExpression for operator: {}", x))),
     }
+  }
+}
+
+impl EvalObject for BlockStatement {
+  fn eval(&self) -> Result<Object, EvalError> {
+    eval_statements(&self.statements)
   }
 }
 
