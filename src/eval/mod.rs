@@ -12,7 +12,7 @@ use boolean_literal::BooleanLiteral;
 // use call_expression::CallExpression;
 // use function_literal::FunctionLiteral;
 // use identifier::Identifier;
-// use if_expression::IfExpression;
+use if_expression::IfExpression;
 use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
 use prefix_expression::PrefixExpression;
@@ -52,7 +52,7 @@ impl EvalObject for Expression {
       Expression::IntegerLiteral(integer_literal) => integer_literal.eval(),
       Expression::PrefixExpression(prefix_expression) => prefix_expression.eval(),
       Expression::InfixExpression(infix_expression) => infix_expression.eval(),
-      Expression::IfExpression(_if_expression) => Err(EvalError::not_implemented("IfExpression")),
+      Expression::IfExpression(if_expression) => if_expression.eval(),
       Expression::FunctionLiteral(_function_literal) => Err(EvalError::not_implemented("FunctionLiteral")),
       Expression::CallExpression(_call_expression) => Err(EvalError::not_implemented("CallExpression")),
     }
@@ -84,6 +84,22 @@ impl EvalObject for PrefixExpression {
 impl EvalObject for BlockStatement {
   fn eval(&self) -> Result<Object, EvalError> {
     eval_statements(&self.statements)
+  }
+}
+
+impl EvalObject for IfExpression {
+  fn eval(&self) -> Result<Object, EvalError> {
+    let condition_is_met = self.condition.eval()?.get_is_truthy().clone();
+
+    if condition_is_met {
+      self.true_block.eval()
+    }
+    else {
+      match &*self.false_block_or_none {
+        Some(false_block) => false_block.eval(),
+        None => Ok(Object::Null),
+      }
+    }
   }
 }
 

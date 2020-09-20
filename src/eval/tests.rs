@@ -89,6 +89,29 @@ fn test_eval_bang_operator() -> Result<(), String> {
   Ok(())
 }
 
+#[test]
+fn test_eval_if_expression() -> Result<(), String> {
+  let tests = vec![
+    ("if (true) { 10 }", Object::Integer(10)),
+    ("if (false) { 10 }", Object::Null),
+    ("if (1) { 10 }", Object::Integer(10)),
+    ("if (0) { 10 }", Object::Null),
+    ("if (1 < 2) { 10 }", Object::Integer(10)),
+    ("if (1 > 2) { 10 }", Object::Null),
+    ("if (1 < 2) { 10 } else { 20 }", Object::Integer(10)),
+    ("if (1 > 2) { 10 } else { 20 }", Object::Integer(20)),
+  ];
+
+  for test in &tests {
+    let (input, result) = test;
+    let result_object = test_eval(input);
+    println!("input: {}, result: {:?}", input, result);
+    test_result(&result_object, result);
+  }
+
+  Ok(())
+}
+
 fn test_eval(input: &str) -> Object {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);

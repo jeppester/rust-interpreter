@@ -30,4 +30,12 @@ impl Object {
       _ => Err(EvalError(format!("Expected boolean, found: {:?}", self))),
     }
   }
+
+  pub fn get_is_truthy(&self) -> &bool {
+    match self {
+      Object::Integer(integer) => if integer == &0 { &false } else { &true },
+      Object::Boolean(is_true) => &is_true,
+      Object::Null => &false,
+    }
+  }
 }
