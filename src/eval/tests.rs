@@ -112,6 +112,25 @@ fn test_eval_if_expression() -> Result<(), String> {
   Ok(())
 }
 
+#[test]
+fn test_eval_return_statements() -> Result<(), String> {
+  let tests = vec![
+    ("return 10", Object::Integer(10)),
+    ("return 10; 9", Object::Integer(10)),
+    ("return 2 * 5; 9", Object::Integer(10)),
+    ("9; return 2 * 5; 9", Object::Integer(10)),
+  ];
+
+  for test in &tests {
+    let (input, result) = test;
+    let result_object = test_eval(input);
+    println!("input: {}, result: {:?}", input, result);
+    test_result(&result_object, result);
+  }
+
+  Ok(())
+}
+
 fn test_eval(input: &str) -> Object {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
@@ -139,6 +158,7 @@ fn test_result(actual_result: &Object, expected_result: &Object) {
         Object::Null => {},
         x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result)
       }
-    }
+    },
+    _ => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result)
   }
 }

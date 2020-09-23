@@ -18,7 +18,7 @@ use integer_literal::IntegerLiteral;
 use prefix_expression::PrefixExpression;
 use block_statement::BlockStatement;
 // use let_statement::LetStatement;
-// use return_statement::ReturnStatement;
+use return_statement::ReturnStatement;
 
 pub const TRUE_OBJECT: Object = Object::Boolean(true);
 pub const FALSE_OBJECT: Object = Object::Boolean(false);
@@ -29,7 +29,17 @@ pub trait EvalObject {
 
 impl EvalObject for Program {
   fn eval(&self) -> Result<Object, EvalError> {
-    eval_statements(&self.statements)
+    let mut result = Object::Null;
+
+    for statement in &self.statements {
+      result = eval(statement)?;
+
+      if let Object::Return(boxed_result) = result {
+        return Ok(*boxed_result)
+      }
+    }
+
+    Ok(result)
   }
 }
 
@@ -37,7 +47,7 @@ impl EvalObject for Statement {
   fn eval(&self) -> Result<Object, EvalError> {
     match &self {
       Statement::LetStatement(_let_statement) => Err(EvalError::not_implemented("LetStatement")),
-      Statement::ReturnStatement(_return_statement) => Err(EvalError::not_implemented("ReturnStatement")),
+      Statement::ReturnStatement(return_statement) => return_statement.eval(),
       Statement::Expression(expression) => expression.eval(),
       Statement::BlockStatement(block_statement) => block_statement.eval(),
     }
@@ -83,7 +93,17 @@ impl EvalObject for PrefixExpression {
 
 impl EvalObject for BlockStatement {
   fn eval(&self) -> Result<Object, EvalError> {
-    eval_statements(&self.statements)
+    let mut result = Object::Null;
+
+    for statement in &self.statements {
+      result = eval(statement)?;
+
+      if let Object::Return(_) = result {
+        return Ok(result)
+      }
+    }
+
+    Ok(result)
   }
 }
 
@@ -100,6 +120,13 @@ impl EvalObject for IfExpression {
         None => Ok(Object::Null),
       }
     }
+  }
+}
+
+impl EvalObject for ReturnStatement {
+  fn eval(&self) -> Result<Object, EvalError> {
+    let return_object = self.return_value.eval()?;
+    Ok(Object::Return(Box::new(return_object)))
   }
 }
 
@@ -168,14 +195,4 @@ fn native_boolean_to_boolean_object(boolean: bool) -> Object {
 
 pub fn eval(node: &impl EvalObject) -> Result<Object, EvalError> {
   node.eval()
-}
-
-pub fn eval_statements(statements: &Vec<Statement>) -> Result<Object, EvalError> {
-  let mut result: Result<Object, EvalError> = Ok(Object::Null);
-
-  for statement in statements {
-    result = eval(statement);
-  }
-
-  result
 }
