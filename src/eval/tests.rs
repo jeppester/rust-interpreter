@@ -131,34 +131,69 @@ fn test_eval_return_statements() -> Result<(), String> {
   Ok(())
 }
 
-fn test_eval(input: &str) -> Object {
+#[test]
+fn test_error_handling() -> Result<(), String> {
+  let tests = vec![
+    ("5 + true", "Expected integer, found: Boolean(true)"),
+    ("5 + true; 5", "Expected integer, found: Boolean(true)"),
+    ("-true", "Expected integer, found: Boolean(true)"),
+    ("false + true", "Unknown operation: Boolean + Boolean"),
+    ("5; false + true; 5", "Unknown operation: Boolean + Boolean"),
+    ("if (10 > 1) { false + true; }", "Unknown operation: Boolean + Boolean"),
+    ("
+      if (10 > 1) {
+        if (10 > 9) {
+          return false + true;
+        }
+
+        return 1
+      }
+    ", "Unknown operation: Boolean + Boolean"),
+  ];
+
+  for test in &tests {
+    let (input, expected_error_message) = test;
+    let result_object = test_eval(input);
+    println!("input: {}, expected error: {:?}", input, expected_error_message);
+
+    let error = match_or_fail!(result_object, Err(m) => m);
+    let error_message = match_or_fail!(error, EvalError(m) => m);
+    assert_eq!(&error_message, expected_error_message)
+  }
+
+  Ok(())
+}
+
+fn test_eval(input: &str) -> Result<Object, EvalError> {
   let lexer = Lexer::new(input);
   let mut parser = Parser::new(lexer);
 
   let program = match_or_fail!(parser.parse_program(), Ok(m) => m);
-  match_or_fail!(eval(&program), Ok(m) => m)
+  eval(&program)
 }
 
-fn test_result(actual_result: &Object, expected_result: &Object) {
-  match actual_result {
+fn test_result(actual_result: &Result<Object, EvalError>, expected_result: &Object) {
+  let actual_result_value = match_or_fail!(actual_result, Ok(m) => m);
+
+  match actual_result_value {
     Object::Integer(actual_integer) => {
       match expected_result {
         Object::Integer(expected_integer) => assert_eq!(actual_integer, expected_integer),
-        x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result)
+        x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
       }
     },
     Object::Boolean(actual_boolean) => {
       match expected_result {
         Object::Boolean(expected_boolean) => assert_eq!(actual_boolean, expected_boolean),
-        x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result)
+        x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
       }
     },
     Object::Null => {
       match expected_result {
         Object::Null => {},
-        x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result)
+        x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
       }
     },
-    _ => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result)
+    _ => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
   }
 }

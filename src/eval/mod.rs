@@ -169,7 +169,7 @@ fn eval_integer_infix_expression(operator: &str, left: Object, right: Object) ->
     token_types::GT => Ok(native_boolean_to_boolean_object(left_value > right_value)),
     token_types::EQ => Ok(native_boolean_to_boolean_object(left_value == right_value)),
     token_types::NOT_EQ => Ok(native_boolean_to_boolean_object(left_value != right_value)),
-    x => Err(EvalError::not_implemented(&format!("InfixExpression for operator: {}", x))),
+    _ => Err(EvalError(format!("Unknown operation: Integer {} Integer", operator))),
   }
 }
 
@@ -180,7 +180,7 @@ fn eval_boolean_infix_expression(operator: &str, left: Object, right: Object) ->
   match operator {
     token_types::EQ => Ok(native_boolean_to_boolean_object(left_value == right_value)),
     token_types::NOT_EQ => Ok(native_boolean_to_boolean_object(left_value != right_value)),
-    x => Err(EvalError::not_implemented(&format!("InfixExpression for operator: {}", x))),
+    _ => Err(EvalError(format!("Unknown operation: Boolean {} Boolean", operator))),
   }
 }
 

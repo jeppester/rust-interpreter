@@ -31,7 +31,7 @@ impl Object {
     match self {
       Object::Integer(integer) => Ok(integer.clone()),
       Object::Return(object) => object.get_numeric_value(),
-      _ => Err(EvalError(format!("Expected boolean, found: {:?}", self))),
+      _ => Err(EvalError(format!("Expected integer, found: {:?}", self))),
     }
   }
 
