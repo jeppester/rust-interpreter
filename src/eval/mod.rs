@@ -5,6 +5,7 @@ mod tests;
 
 use crate::ast::*;
 use crate::object::*;
+use crate::object::environment::*;
 use crate::token::*;
 use eval_error::EvalError;
 
@@ -24,15 +25,15 @@ pub const TRUE_OBJECT: Object = Object::Boolean(true);
 pub const FALSE_OBJECT: Object = Object::Boolean(false);
 
 pub trait EvalObject {
-  fn eval(&self) -> Result<Object, EvalError>;
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError>;
 }
 
 impl EvalObject for Program {
-  fn eval(&self) -> Result<Object, EvalError> {
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
     let mut result = Object::Null;
 
     for statement in &self.statements {
-      result = eval(statement)?;
+      result = eval(statement, env)?;
 
       if let Object::Return(boxed_result) = result {
         return Ok(*boxed_result)
@@ -44,25 +45,25 @@ impl EvalObject for Program {
 }
 
 impl EvalObject for Statement {
-  fn eval(&self) -> Result<Object, EvalError> {
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
     match &self {
       Statement::LetStatement(_let_statement) => Err(EvalError::not_implemented("LetStatement")),
-      Statement::ReturnStatement(return_statement) => return_statement.eval(),
-      Statement::Expression(expression) => expression.eval(),
-      Statement::BlockStatement(block_statement) => block_statement.eval(),
+      Statement::ReturnStatement(return_statement) => return_statement.eval(env),
+      Statement::Expression(expression) => expression.eval(env),
+      Statement::BlockStatement(block_statement) => block_statement.eval(env),
     }
   }
 }
 
 impl EvalObject for Expression {
-  fn eval(&self) -> Result<Object, EvalError> {
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
     match &self {
       Expression::Identifier(_expression) => Err(EvalError::not_implemented("Identifier")),
-      Expression::BooleanLiteral(boolean_literal) => boolean_literal.eval(),
-      Expression::IntegerLiteral(integer_literal) => integer_literal.eval(),
-      Expression::PrefixExpression(prefix_expression) => prefix_expression.eval(),
-      Expression::InfixExpression(infix_expression) => infix_expression.eval(),
-      Expression::IfExpression(if_expression) => if_expression.eval(),
+      Expression::BooleanLiteral(boolean_literal) => boolean_literal.eval(env),
+      Expression::IntegerLiteral(integer_literal) => integer_literal.eval(env),
+      Expression::PrefixExpression(prefix_expression) => prefix_expression.eval(env),
+      Expression::InfixExpression(infix_expression) => infix_expression.eval(env),
+      Expression::IfExpression(if_expression) => if_expression.eval(env),
       Expression::FunctionLiteral(_function_literal) => Err(EvalError::not_implemented("FunctionLiteral")),
       Expression::CallExpression(_call_expression) => Err(EvalError::not_implemented("CallExpression")),
     }
@@ -70,33 +71,33 @@ impl EvalObject for Expression {
 }
 
 impl EvalObject for IntegerLiteral {
-  fn eval(&self) -> Result<Object, EvalError> {
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
     Ok(Object::Integer(self.value.clone()))
   }
 }
 
 impl EvalObject for BooleanLiteral {
-  fn eval(&self) -> Result<Object, EvalError> {
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
     Ok(native_boolean_to_boolean_object(self.value))
   }
 }
 
 impl EvalObject for PrefixExpression {
-  fn eval(&self) -> Result<Object, EvalError> {
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
     match self.operator.as_str() {
-      token_types::BANG => eval_bang_operator_expression(&self.right),
-      token_types::MINUS => eval_minus_operator_expression(&self.right),
+      token_types::BANG => eval_bang_operator_expression(&self.right, env),
+      token_types::MINUS => eval_minus_operator_expression(&self.right, env),
       x => Err(EvalError::not_implemented(&format!("PrefixExpression for operator: {}", x))),
     }
   }
 }
 
 impl EvalObject for BlockStatement {
-  fn eval(&self) -> Result<Object, EvalError> {
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
     let mut result = Object::Null;
 
     for statement in &self.statements {
-      result = eval(statement)?;
+      result = statement.eval(env)?;
 
       if let Object::Return(_) = result {
         return Ok(result)
@@ -108,15 +109,15 @@ impl EvalObject for BlockStatement {
 }
 
 impl EvalObject for IfExpression {
-  fn eval(&self) -> Result<Object, EvalError> {
-    let condition_is_met = self.condition.eval()?.get_is_truthy().clone();
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+    let condition_is_met = self.condition.eval(env)?.get_is_truthy().clone();
 
     if condition_is_met {
-      self.true_block.eval()
+      self.true_block.eval(env)
     }
     else {
       match &*self.false_block_or_none {
-        Some(false_block) => false_block.eval(),
+        Some(false_block) => false_block.eval(env),
         None => Ok(Object::Null),
       }
     }
@@ -124,29 +125,29 @@ impl EvalObject for IfExpression {
 }
 
 impl EvalObject for ReturnStatement {
-  fn eval(&self) -> Result<Object, EvalError> {
-    let return_object = self.return_value.eval()?;
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+    let return_object = self.return_value.eval(env)?;
     Ok(Object::Return(Box::new(return_object)))
   }
 }
 
-fn eval_bang_operator_expression(right: &Box<Expression>) -> Result<Object, EvalError> {
-  let right_object = right.eval()?;
+fn eval_bang_operator_expression(right: &Box<Expression>, env: &mut Environment) -> Result<Object, EvalError> {
+  let right_object = right.eval(env)?;
 
   Ok(native_boolean_to_boolean_object(!*right_object.get_boolean_value()?))
 }
 
-fn eval_minus_operator_expression(right: &Box<Expression>) -> Result<Object, EvalError> {
-  let right_object = right.eval()?;
+fn eval_minus_operator_expression(right: &Box<Expression>, env: &mut Environment) -> Result<Object, EvalError> {
+  let right_object = right.eval(env)?;
   let numeric_value = right_object.get_numeric_value()?;
 
   Ok(Object::Integer(-numeric_value))
 }
 
 impl EvalObject for InfixExpression {
-  fn eval(&self) -> Result<Object, EvalError> {
-    let left_object = self.left.eval()?;
-    let right_object = self.right.eval()?;
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+    let left_object = self.left.eval(env)?;
+    let right_object = self.right.eval(env)?;
 
     match left_object {
       Object::Integer(_) => eval_integer_infix_expression(&self.operator, left_object, right_object),
@@ -193,6 +194,6 @@ fn native_boolean_to_boolean_object(boolean: bool) -> Object {
   }
 }
 
-pub fn eval(node: &impl EvalObject) -> Result<Object, EvalError> {
-  node.eval()
+pub fn eval(node: &impl EvalObject, env: &mut Environment) -> Result<Object, EvalError> {
+  node.eval(env)
 }

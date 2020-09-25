@@ -2,6 +2,7 @@ use crate::eval::*;
 use crate::lexer::*;
 use crate::parser::*;
 use crate::object::*;
+use crate::object::environment::*;
 
 #[test]
 fn test_eval_integer_expression() -> Result<(), String> {
@@ -169,7 +170,8 @@ fn test_eval(input: &str) -> Result<Object, EvalError> {
   let mut parser = Parser::new(lexer);
 
   let program = match_or_fail!(parser.parse_program(), Ok(m) => m);
-  eval(&program)
+  let mut env = Environment::new();
+  eval(&program, &mut env)
 }
 
 fn test_result(actual_result: &Result<Object, EvalError>, expected_result: &Object) {
