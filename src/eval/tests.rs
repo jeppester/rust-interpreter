@@ -133,6 +133,25 @@ fn test_eval_return_statements() -> Result<(), String> {
 }
 
 #[test]
+fn test_let_statements() -> Result<(), String> {
+  let tests = vec![
+    ("let a = 5; a;", Object::Integer(5)),
+    ("let a = 5 * 5; a;", Object::Integer(25)),
+    ("let a = 5; let b = a; b;", Object::Integer(5)),
+    ("let a = 5; let b = a; let c = a + b + 5; c;", Object::Integer(15)),
+  ];
+
+  for test in &tests {
+    let (input, result) = test;
+    let result_object = test_eval(input);
+    println!("input: {}, result: {:?}", input, result);
+    test_result(&result_object, result);
+  }
+
+  Ok(())
+}
+
+#[test]
 fn test_error_handling() -> Result<(), String> {
   let tests = vec![
     ("5 + true", "Expected integer, found: Boolean(true)"),
@@ -150,6 +169,8 @@ fn test_error_handling() -> Result<(), String> {
         return 1
       }
     ", "Unknown operation: Boolean + Boolean"),
+    ("foobar", "Unknown identifier: foobar"),
+    ("let foobar = 1; let foobar = 2;", "Identifier has already been declared: foobar"),
   ];
 
   for test in &tests {

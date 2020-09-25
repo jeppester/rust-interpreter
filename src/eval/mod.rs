@@ -12,13 +12,13 @@ use eval_error::EvalError;
 use boolean_literal::BooleanLiteral;
 // use call_expression::CallExpression;
 // use function_literal::FunctionLiteral;
-// use identifier::Identifier;
+use identifier::Identifier;
 use if_expression::IfExpression;
 use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
 use prefix_expression::PrefixExpression;
 use block_statement::BlockStatement;
-// use let_statement::LetStatement;
+use let_statement::LetStatement;
 use return_statement::ReturnStatement;
 
 pub const TRUE_OBJECT: Object = Object::Boolean(true);
@@ -47,7 +47,7 @@ impl EvalObject for Program {
 impl EvalObject for Statement {
   fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
     match &self {
-      Statement::LetStatement(_let_statement) => Err(EvalError::not_implemented("LetStatement")),
+      Statement::LetStatement(let_statement) => let_statement.eval(env),
       Statement::ReturnStatement(return_statement) => return_statement.eval(env),
       Statement::Expression(expression) => expression.eval(env),
       Statement::BlockStatement(block_statement) => block_statement.eval(env),
@@ -58,7 +58,7 @@ impl EvalObject for Statement {
 impl EvalObject for Expression {
   fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
     match &self {
-      Expression::Identifier(_expression) => Err(EvalError::not_implemented("Identifier")),
+      Expression::Identifier(identifier) => identifier.eval(env),
       Expression::BooleanLiteral(boolean_literal) => boolean_literal.eval(env),
       Expression::IntegerLiteral(integer_literal) => integer_literal.eval(env),
       Expression::PrefixExpression(prefix_expression) => prefix_expression.eval(env),
@@ -154,6 +154,20 @@ impl EvalObject for InfixExpression {
       Object::Boolean(_) => eval_boolean_infix_expression(&self.operator, left_object, right_object),
       x => return Err(EvalError::not_implemented(&format!("InfixExpression for object type: {:?}", x))),
     }
+  }
+}
+
+impl EvalObject for LetStatement {
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+    let object = self.value.eval(env)?;
+
+    env.set(&self.name.value, object)
+  }
+}
+
+impl EvalObject for Identifier {
+  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+    env.get(&self.value)
   }
 }
 
