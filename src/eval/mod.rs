@@ -72,13 +72,13 @@ impl EvalObject for Expression {
 }
 
 impl EvalObject for IntegerLiteral {
-  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
+  fn eval(&self, _: &WrappedEnv) -> Result<Object, EvalError> {
     Ok(Object::Integer(self.value.clone()))
   }
 }
 
 impl EvalObject for BooleanLiteral {
-  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
+  fn eval(&self, _: &WrappedEnv) -> Result<Object, EvalError> {
     Ok(native_boolean_to_boolean_object(self.value))
   }
 }

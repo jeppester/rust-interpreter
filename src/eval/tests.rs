@@ -204,19 +204,19 @@ fn test_result(actual_result: &Result<Object, EvalError>, expected_result: &Obje
     Object::Integer(actual_integer) => {
       match expected_result {
         Object::Integer(expected_integer) => assert_eq!(actual_integer, expected_integer),
-        x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
+        _ => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
       }
     },
     Object::Boolean(actual_boolean) => {
       match expected_result {
         Object::Boolean(expected_boolean) => assert_eq!(actual_boolean, expected_boolean),
-        x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
+        _ => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
       }
     },
     Object::Null => {
       match expected_result {
         Object::Null => {},
-        x => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
+        _ => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
       }
     },
     _ => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
