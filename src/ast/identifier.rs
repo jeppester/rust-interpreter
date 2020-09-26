@@ -1,6 +1,6 @@
 use crate::token::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Identifier {
   pub token: Token,
   pub value: String,

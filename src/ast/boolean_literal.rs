@@ -1,6 +1,6 @@
 use crate::token::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BooleanLiteral {
   pub token: Token,
   pub value: bool,

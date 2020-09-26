@@ -1,7 +1,12 @@
 use std::collections::HashMap;
 use crate::eval::eval_error::*;
 use crate::object::Object;
+use std::rc::Rc;
+use std::cell::RefCell;
 
+pub type WrappedEnv = Rc<RefCell<Environment>>;
+
+#[derive(Debug)]
 pub struct Environment {
   store: HashMap<String, Object>,
 }
@@ -9,7 +14,7 @@ pub struct Environment {
 impl Environment {
   pub fn new() -> Self {
     Self {
-      store: HashMap::new()
+      store: HashMap::new(),
     }
   }
 

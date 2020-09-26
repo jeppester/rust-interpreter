@@ -20,20 +20,21 @@ use prefix_expression::PrefixExpression;
 use block_statement::BlockStatement;
 use let_statement::LetStatement;
 use return_statement::ReturnStatement;
+use std::rc::Rc;
 
 pub const TRUE_OBJECT: Object = Object::Boolean(true);
 pub const FALSE_OBJECT: Object = Object::Boolean(false);
 
 pub trait EvalObject {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError>;
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError>;
 }
 
 impl EvalObject for Program {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     let mut result = Object::Null;
 
     for statement in &self.statements {
-      result = eval(statement, env)?;
+      result = eval(statement, &Rc::clone(env))?;
 
       if let Object::Return(boxed_result) = result {
         return Ok(*boxed_result)
@@ -45,7 +46,7 @@ impl EvalObject for Program {
 }
 
 impl EvalObject for Statement {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     match &self {
       Statement::LetStatement(let_statement) => let_statement.eval(env),
       Statement::ReturnStatement(return_statement) => return_statement.eval(env),
@@ -56,7 +57,7 @@ impl EvalObject for Statement {
 }
 
 impl EvalObject for Expression {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     match &self {
       Expression::Identifier(identifier) => identifier.eval(env),
       Expression::BooleanLiteral(boolean_literal) => boolean_literal.eval(env),
@@ -71,19 +72,19 @@ impl EvalObject for Expression {
 }
 
 impl EvalObject for IntegerLiteral {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     Ok(Object::Integer(self.value.clone()))
   }
 }
 
 impl EvalObject for BooleanLiteral {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     Ok(native_boolean_to_boolean_object(self.value))
   }
 }
 
 impl EvalObject for PrefixExpression {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     match self.operator.as_str() {
       token_types::BANG => eval_bang_operator_expression(&self.right, env),
       token_types::MINUS => eval_minus_operator_expression(&self.right, env),
@@ -93,11 +94,11 @@ impl EvalObject for PrefixExpression {
 }
 
 impl EvalObject for BlockStatement {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     let mut result = Object::Null;
 
     for statement in &self.statements {
-      result = statement.eval(env)?;
+      result = statement.eval(&Rc::clone(env))?;
 
       if let Object::Return(_) = result {
         return Ok(result)
@@ -109,11 +110,11 @@ impl EvalObject for BlockStatement {
 }
 
 impl EvalObject for IfExpression {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
-    let condition_is_met = self.condition.eval(env)?.get_is_truthy().clone();
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
+    let condition_is_met = self.condition.eval(&Rc::clone(env))?.get_is_truthy().clone();
 
     if condition_is_met {
-      self.true_block.eval(env)
+      self.true_block.eval(&Rc::clone(env))
     }
     else {
       match &*self.false_block_or_none {
@@ -125,19 +126,19 @@ impl EvalObject for IfExpression {
 }
 
 impl EvalObject for ReturnStatement {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     let return_object = self.return_value.eval(env)?;
     Ok(Object::Return(Box::new(return_object)))
   }
 }
 
-fn eval_bang_operator_expression(right: &Box<Expression>, env: &mut Environment) -> Result<Object, EvalError> {
+fn eval_bang_operator_expression(right: &Box<Expression>, env: &WrappedEnv) -> Result<Object, EvalError> {
   let right_object = right.eval(env)?;
 
   Ok(native_boolean_to_boolean_object(!*right_object.get_boolean_value()?))
 }
 
-fn eval_minus_operator_expression(right: &Box<Expression>, env: &mut Environment) -> Result<Object, EvalError> {
+fn eval_minus_operator_expression(right: &Box<Expression>, env: &WrappedEnv) -> Result<Object, EvalError> {
   let right_object = right.eval(env)?;
   let numeric_value = right_object.get_numeric_value()?;
 
@@ -145,9 +146,9 @@ fn eval_minus_operator_expression(right: &Box<Expression>, env: &mut Environment
 }
 
 impl EvalObject for InfixExpression {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
-    let left_object = self.left.eval(env)?;
-    let right_object = self.right.eval(env)?;
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
+    let left_object = self.left.eval(&Rc::clone(env))?;
+    let right_object = self.right.eval(&Rc::clone(env))?;
 
     match left_object {
       Object::Integer(_) => eval_integer_infix_expression(&self.operator, left_object, right_object),
@@ -158,16 +159,16 @@ impl EvalObject for InfixExpression {
 }
 
 impl EvalObject for LetStatement {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     let object = self.value.eval(env)?;
 
-    env.set(&self.name.value, object)
+    env.borrow_mut().set(&self.name.value, object)
   }
 }
 
 impl EvalObject for Identifier {
-  fn eval(&self, env: &mut Environment) -> Result<Object, EvalError> {
-    env.get(&self.value)
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
+    env.borrow().get(&self.value)
   }
 }
 
@@ -208,6 +209,6 @@ fn native_boolean_to_boolean_object(boolean: bool) -> Object {
   }
 }
 
-pub fn eval(node: &impl EvalObject, env: &mut Environment) -> Result<Object, EvalError> {
+pub fn eval(node: &impl EvalObject, env: &WrappedEnv) -> Result<Object, EvalError> {
   node.eval(env)
 }

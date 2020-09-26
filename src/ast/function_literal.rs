@@ -2,7 +2,7 @@ use crate::ast::BlockStatement;
 use crate::ast::Identifier;
 use crate::token::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionLiteral {
   pub token: Token,
   pub arguments: Vec<Identifier>,

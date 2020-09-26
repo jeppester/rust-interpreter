@@ -3,6 +3,8 @@ use crate::lexer::*;
 use crate::parser::*;
 use crate::object::*;
 use crate::object::environment::*;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[test]
 fn test_eval_integer_expression() -> Result<(), String> {
@@ -191,8 +193,8 @@ fn test_eval(input: &str) -> Result<Object, EvalError> {
   let mut parser = Parser::new(lexer);
 
   let program = match_or_fail!(parser.parse_program(), Ok(m) => m);
-  let mut env = Environment::new();
-  eval(&program, &mut env)
+  let env = Rc::new(RefCell::new(Environment::new()));
+  eval(&program, &env)
 }
 
 fn test_result(actual_result: &Result<Object, EvalError>, expected_result: &Object) {

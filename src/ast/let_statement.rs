@@ -3,7 +3,7 @@ use crate::ast::identifier::Identifier;
 use crate::ast::Expression;
 use crate::token::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LetStatement {
   pub token: Token,
   pub name: Identifier,

@@ -26,7 +26,7 @@ use let_statement::LetStatement;
 use prefix_expression::PrefixExpression;
 use return_statement::ReturnStatement;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expression {
   BooleanLiteral(BooleanLiteral),
   Identifier(Identifier),
@@ -66,7 +66,7 @@ impl Expression {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Statement {
   LetStatement(LetStatement),
   ReturnStatement(ReturnStatement),
