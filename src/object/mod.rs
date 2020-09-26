@@ -1,4 +1,6 @@
 use crate::eval::eval_error::*;
+use crate::ast::block_statement::*;
+use environment::*;
 
 pub mod environment;
 
@@ -8,6 +10,7 @@ pub enum Object {
   Boolean(bool),
   Null,
   Return(Box<Object>),
+  Function(Vec<String>, Box<BlockStatement>, WrappedEnv),
 }
 
 impl Object {
@@ -16,6 +19,7 @@ impl Object {
       Object::Integer(integer) => integer.to_string(),
       Object::Boolean(is_true) => if *is_true { "True".to_string() } else { "False".to_string() },
       Object::Return(object) => object.inspect(),
+      Object::Function(_, _, _) => "Function".to_string(),
       Object::Null => "Null".to_string(),
     }
   }
@@ -42,6 +46,7 @@ impl Object {
       Object::Integer(integer) => if integer == &0 { &false } else { &true },
       Object::Boolean(is_true) => &is_true,
       Object::Return(object) => object.get_is_truthy(),
+      Object::Function(_, _, _) => &true,
       Object::Null => &false,
     }
   }

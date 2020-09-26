@@ -10,8 +10,8 @@ use crate::token::*;
 use eval_error::EvalError;
 
 use boolean_literal::BooleanLiteral;
-// use call_expression::CallExpression;
-// use function_literal::FunctionLiteral;
+use call_expression::CallExpression;
+use function_literal::FunctionLiteral;
 use identifier::Identifier;
 use if_expression::IfExpression;
 use infix_expression::InfixExpression;
@@ -65,8 +65,8 @@ impl EvalObject for Expression {
       Expression::PrefixExpression(prefix_expression) => prefix_expression.eval(env),
       Expression::InfixExpression(infix_expression) => infix_expression.eval(env),
       Expression::IfExpression(if_expression) => if_expression.eval(env),
-      Expression::FunctionLiteral(_function_literal) => Err(EvalError::not_implemented("FunctionLiteral")),
-      Expression::CallExpression(_call_expression) => Err(EvalError::not_implemented("CallExpression")),
+      Expression::FunctionLiteral(function_literal) => function_literal.eval(env),
+      Expression::CallExpression(call_expression) => call_expression.eval(env),
     }
   }
 }
@@ -129,6 +129,43 @@ impl EvalObject for ReturnStatement {
   fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
     let return_object = self.return_value.eval(env)?;
     Ok(Object::Return(Box::new(return_object)))
+  }
+}
+
+impl EvalObject for FunctionLiteral {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
+    let mut identifiers = vec![];
+    for argument in &self.arguments {
+      identifiers.push(argument.value.clone());
+    }
+
+    Ok(Object::Function(identifiers, self.body.clone(), Rc::clone(env)))
+  }
+}
+
+impl EvalObject for CallExpression {
+  fn eval(&self, env: &WrappedEnv) -> Result<Object, EvalError> {
+    let function = self.function.eval(env)?;
+
+    if let Object::Function(params, block, outer_env) = function {
+      if params.len() != self.arguments.len() {
+        return Err(EvalError(format!("Expected {} arguments ({}), got {}", params.len(), params.join(", "), self.arguments.len())))
+      }
+
+      let function_env = Environment::extend(&outer_env);
+
+      let mut current = 0;
+      for argument in &*self.arguments {
+        let name = &params[current];
+        function_env.borrow_mut().set(name, argument.eval(env)?)?;
+        current += 1;
+      }
+
+      block.eval(&function_env)
+    }
+    else {
+      Err(EvalError(format!("Expected function, found: {:?}", function)))
+    }
   }
 }
 

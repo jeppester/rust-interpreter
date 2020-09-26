@@ -9,12 +9,21 @@ pub type WrappedEnv = Rc<RefCell<Environment>>;
 #[derive(Debug)]
 pub struct Environment {
   store: HashMap<String, Object>,
+  outer: Option<WrappedEnv>
 }
 
 impl Environment {
+  pub fn extend(env: &WrappedEnv) -> WrappedEnv {
+    Rc::new(RefCell::new(Environment {
+      store: HashMap::new(),
+      outer: Some(env.clone())
+    }))
+  }
+
   pub fn new() -> Self {
     Self {
       store: HashMap::new(),
+      outer: None,
     }
   }
 
@@ -23,7 +32,12 @@ impl Environment {
       // It would be nice to not use clone here, especially for functions, but it would likely
       // require objects to be owned by a different entity, or maybe Rc can be used?
       Some(value) => Ok(value.clone()),
-      None => Err(EvalError(format!("Unknown identifier: {}", key)))
+      None => {
+        match &self.outer {
+          Some(outer_env) => outer_env.borrow().get(key),
+          None => Err(EvalError(format!("Unknown identifier: {}", key))),
+        }
+      }
     }
   }
 

@@ -154,6 +154,29 @@ fn test_let_statements() -> Result<(), String> {
 }
 
 #[test]
+fn test_function_calls() -> Result<(), String> {
+  let tests = vec![
+    ("let test = fn (a) { a + 5 }; test(5);", Object::Integer(10)),
+    ("
+      let test = 2;
+      let make_adder_to_test = fn (a) { fn(b) { test + a + b } };
+
+      let add_five_plus_n_to_test = make_adder_to_test(5);
+      add_five_plus_n_to_test(3)
+    ", Object::Integer(10)),
+  ];
+
+  for test in &tests {
+    let (input, result) = test;
+    let result_object = test_eval(input);
+    println!("input: {}, result: {:?}", input, result);
+    test_result(&result_object, result);
+  }
+
+  Ok(())
+}
+
+#[test]
 fn test_error_handling() -> Result<(), String> {
   let tests = vec![
     ("5 + true", "Expected integer, found: Boolean(true)"),
@@ -173,6 +196,8 @@ fn test_error_handling() -> Result<(), String> {
     ", "Unknown operation: Boolean + Boolean"),
     ("foobar", "Unknown identifier: foobar"),
     ("let foobar = 1; let foobar = 2;", "Identifier has already been declared: foobar"),
+    ("let foobar = fn(a, b) { a + b }; foobar(1);", "Expected 2 arguments (a, b), got 1"),
+    ("let foobar = 2; foobar(1);", "Expected function, found: Integer(2)"),
   ];
 
   for test in &tests {
