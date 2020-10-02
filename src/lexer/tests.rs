@@ -24,6 +24,10 @@ fn test_next_token() {
 
     10 == 10;
     10 != 9;
+    \"foobar\";
+    \"foo bar\";
+    \"foo\\nbar\";
+    \"foo\\\"bar\";
   ";
   use token_types::*;
 
@@ -131,6 +135,22 @@ fn test_next_token() {
     Token { token_type: INT, literal: "10".to_string() },
     Token { token_type: NOT_EQ, literal: "!=".to_string() },
     Token { token_type: INT, literal: "9".to_string() },
+    Token { token_type: SEMICOLON, literal: ";".to_string() },
+
+    // "foobar";
+    Token { token_type: STRING, literal: "foobar".to_string() },
+    Token { token_type: SEMICOLON, literal: ";".to_string() },
+
+    // "foo bar";
+    Token { token_type: STRING, literal: "foo bar".to_string() },
+    Token { token_type: SEMICOLON, literal: ";".to_string() },
+
+    // "foo\nbar";
+    Token { token_type: STRING, literal: "foo\nbar".to_string() },
+    Token { token_type: SEMICOLON, literal: ";".to_string() },
+
+    // "foo\tbar";
+    Token { token_type: STRING, literal: "foo\"bar".to_string() },
     Token { token_type: SEMICOLON, literal: ";".to_string() },
 
     // END

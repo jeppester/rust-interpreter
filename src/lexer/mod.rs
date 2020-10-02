@@ -96,6 +96,40 @@ impl Lexer {
     self.chars[position..self.position].into_iter().collect()
   }
 
+  pub fn read_string(&mut self) -> String {
+    let mut string_chars = vec![];
+
+    loop {
+      self.read_char();
+
+      match self.ch {
+        None => break,
+        Some(ch) => {
+          match ch {
+            '"' => break,
+            '\\' => self.read_escape(&mut string_chars),
+            x => string_chars.push(x),
+          }
+        }
+      }
+    }
+
+    string_chars.into_iter().collect()
+  }
+
+  pub fn read_escape(&mut self, string_chars: &mut Vec<char>) {
+    if let Some(_) = self.peak_char() {
+      self.read_char();
+      let ch = self.ch.unwrap();
+
+      match ch {
+        'n' => string_chars.push('\n'),
+        'r' => string_chars.push('\r'),
+        x => string_chars.push(x),
+      }
+    }
+  }
+
   pub fn next_token(&mut self) -> Token {
     use crate::token::*;
     use token_types::*;
@@ -141,6 +175,9 @@ impl Lexer {
           else {
             token = Token { token_type: BANG, literal };
           }
+        },
+        '"' => {
+          token = Token { token_type: STRING, literal: self.read_string() }
         },
         _x => {
           if self.current_char_is_letter() {
