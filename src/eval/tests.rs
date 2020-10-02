@@ -36,6 +36,22 @@ fn test_eval_integer_expression() -> Result<(), String> {
 }
 
 #[test]
+fn test_eval_string_literal_expression() -> Result<(), String> {
+  let tests = vec![
+    ("\"Hello world\"", Object::String("Hello world".to_string())),
+  ];
+
+  for test in &tests {
+    let (input, result) = test;
+    let result_object = test_eval(input);
+    println!("input: {}, result: {:?}", input, result);
+    test_result(&result_object, result);
+  }
+
+  Ok(())
+}
+
+#[test]
 fn test_eval_boolean_expression() -> Result<(), String> {
   let tests = vec![
     ("true", Object::Boolean(true)),
@@ -229,6 +245,12 @@ fn test_result(actual_result: &Result<Object, EvalError>, expected_result: &Obje
     Object::Integer(actual_integer) => {
       match expected_result {
         Object::Integer(expected_integer) => assert_eq!(actual_integer, expected_integer),
+        _ => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
+      }
+    },
+    Object::String(actual_string) => {
+      match expected_result {
+        Object::String(expected_string) => assert_eq!(actual_string, expected_string),
         _ => panic!("Expected:\n\t{:?}\nGot:\n\t{:?}", expected_result, actual_result_value)
       }
     },

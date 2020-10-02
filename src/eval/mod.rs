@@ -16,6 +16,7 @@ use identifier::Identifier;
 use if_expression::IfExpression;
 use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
+use string_literal::StringLiteral;
 use prefix_expression::PrefixExpression;
 use block_statement::BlockStatement;
 use let_statement::LetStatement;
@@ -67,7 +68,7 @@ impl EvalObject for Expression {
       Expression::IfExpression(if_expression) => if_expression.eval(env),
       Expression::FunctionLiteral(function_literal) => function_literal.eval(env),
       Expression::CallExpression(call_expression) => call_expression.eval(env),
-      Expression::StringLiteral(_string_literal) => Err(EvalError::not_implemented("StringLiteral")),
+      Expression::StringLiteral(string_literal) => string_literal.eval(env),
     }
   }
 }
@@ -75,6 +76,12 @@ impl EvalObject for Expression {
 impl EvalObject for IntegerLiteral {
   fn eval(&self, _: &WrappedEnv) -> Result<Object, EvalError> {
     Ok(Object::Integer(self.value.clone()))
+  }
+}
+
+impl EvalObject for StringLiteral {
+  fn eval(&self, _: &WrappedEnv) -> Result<Object, EvalError> {
+    Ok(Object::String(self.value.clone()))
   }
 }
 
