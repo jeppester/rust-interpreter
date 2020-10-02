@@ -27,6 +27,10 @@ pub fn start() {
       process::exit(1)
     };
 
+    if &input == "exit\n" || &input == "exit;\n" {
+      process::exit(0)
+    }
+
     let lexer = Lexer::new(&input);
     let mut parser = Parser::new(lexer);
 
