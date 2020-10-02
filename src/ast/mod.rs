@@ -12,6 +12,7 @@ pub mod integer_literal;
 pub mod let_statement;
 pub mod prefix_expression;
 pub mod return_statement;
+pub mod string_literal;
 
 use crate::token::Literal;
 use block_statement::BlockStatement;
@@ -25,6 +26,7 @@ use integer_literal::IntegerLiteral;
 use let_statement::LetStatement;
 use prefix_expression::PrefixExpression;
 use return_statement::ReturnStatement;
+use string_literal::StringLiteral;
 
 #[derive(Debug, Clone)]
 pub enum Expression {
@@ -36,6 +38,7 @@ pub enum Expression {
   IfExpression(IfExpression),
   FunctionLiteral(FunctionLiteral),
   CallExpression(CallExpression),
+  StringLiteral(StringLiteral),
 }
 
 impl Expression {
@@ -49,6 +52,7 @@ impl Expression {
       Expression::IfExpression(if_expression) => if_expression.token_literal(),
       Expression::FunctionLiteral(function_literal) => function_literal.token_literal(),
       Expression::CallExpression(call_expression) => call_expression.token_literal(),
+      Expression::StringLiteral(string_literal) => string_literal.token_literal(),
     }
   }
 
@@ -62,6 +66,7 @@ impl Expression {
       Expression::IfExpression(if_expression) => if_expression.to_string(),
       Expression::FunctionLiteral(function_literal) => function_literal.to_string(),
       Expression::CallExpression(call_expression) => call_expression.to_string(),
+      Expression::StringLiteral(string_literal) => string_literal.to_string(),
     }
   }
 }

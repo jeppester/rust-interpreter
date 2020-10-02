@@ -102,6 +102,25 @@ fn test_integer_literal_expression() -> Result<(), ParserError> {
 }
 
 #[test]
+fn test_string_literal_expression() -> Result<(), ParserError> {
+  let input = "\"hello world\"";
+
+  let lexer = Lexer::new(input);
+  let mut parser = Parser::new(lexer);
+
+  let program = parser.parse_program()?;
+
+  assert_eq!(program.statements.len(), 1);
+
+  let first_statement = &program.statements[0];
+  let expression = match_or_fail!(first_statement, Statement::Expression(m) => m);
+
+  assert_string_literal(expression, "hello world");
+
+  Ok(())
+}
+
+#[test]
 fn test_boolean_expression() -> Result<(), ParserError> {
   let tests = vec![("true;", true), ("false;", false)];
 
@@ -505,6 +524,15 @@ fn assert_integer_literal(expression: &Expression, value: &i64) {
     assert_eq!(integer_literal.token.literal, value.to_string());
   } else {
     panic!("Expected integer literal expression, got {:?}", expression)
+  }
+}
+
+fn assert_string_literal(expression: &Expression, value: &str) {
+  if let Expression::StringLiteral(string_literal) = expression {
+    assert_eq!(&string_literal.value, value);
+    assert_eq!(string_literal.token.literal, value);
+  } else {
+    panic!("Expected string literal expression, got {:?}", expression)
   }
 }
 

@@ -67,6 +67,7 @@ impl EvalObject for Expression {
       Expression::IfExpression(if_expression) => if_expression.eval(env),
       Expression::FunctionLiteral(function_literal) => function_literal.eval(env),
       Expression::CallExpression(call_expression) => call_expression.eval(env),
+      Expression::StringLiteral(_string_literal) => Err(EvalError::not_implemented("StringLiteral")),
     }
   }
 }

@@ -17,6 +17,7 @@ use if_expression::IfExpression;
 use infix_expression::InfixExpression;
 use integer_literal::IntegerLiteral;
 use prefix_expression::PrefixExpression;
+use string_literal::StringLiteral;
 
 use block_statement::BlockStatement;
 use let_statement::LetStatement;
@@ -87,6 +88,16 @@ pub fn parse_integer_literal(parser: &mut Parser) -> Result<Expression, ParserEr
   let value = token.literal.parse::<i64>()?;
 
   Ok(Expression::IntegerLiteral(IntegerLiteral {
+    token,
+    value,
+  }))
+}
+
+pub fn parse_string_literal(parser: &mut Parser) -> Result<Expression, ParserError> {
+  let token = parser.current_token.clone();
+  let value = token.literal.clone();
+
+  Ok(Expression::StringLiteral(StringLiteral {
     token,
     value,
   }))
@@ -215,6 +226,7 @@ impl Parser {
 
     parser.register_prefix(token_types::IDENT, parse_identifier);
     parser.register_prefix(token_types::INT, parse_integer_literal);
+    parser.register_prefix(token_types::STRING, parse_string_literal);
     parser.register_prefix(token_types::TRUE, parse_boolean);
     parser.register_prefix(token_types::FALSE, parse_boolean);
 
