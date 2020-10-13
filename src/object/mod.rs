@@ -43,6 +43,15 @@ impl Object {
     }
   }
 
+  pub fn get_string_value(&self) -> Result<String, EvalError> {
+    match self {
+      Object::String(string) => Ok(string.clone()),
+      Object::Integer(integer) => Ok(integer.to_string()),
+      Object::Return(object) => object.get_string_value(),
+      _ => Err(EvalError(format!("Expected integer, found: {:?}", self))),
+    }
+  }
+
   pub fn get_is_truthy(&self) -> &bool {
     match self {
       Object::Integer(integer) => if integer == &0 { &false } else { &true },

@@ -193,6 +193,27 @@ fn test_function_calls() -> Result<(), String> {
 }
 
 #[test]
+fn test_string_concatenation() -> Result<(), String> {
+  let tests = vec![
+    ("\"Hello\" + \" \" + \"World!\"", Object::String("Hello World!".to_string())),
+    ("\"Hello\" == \"World!\"", Object::Boolean(false)),
+    ("\"Hello\" == \"Hello\"", Object::Boolean(true)),
+    ("\"Hello\" != \"World!\"", Object::Boolean(true)),
+    ("\"Hello\" != \"Hello\"", Object::Boolean(false)),
+    ("\"Hello \" + 1", Object::String("Hello 1".to_string())),
+  ];
+
+  for test in &tests {
+    let (input, result) = test;
+    let result_object = test_eval(input);
+    println!("input: {}, result: {:?}", input, result);
+    test_result(&result_object, result);
+  }
+
+  Ok(())
+}
+
+#[test]
 fn test_error_handling() -> Result<(), String> {
   let tests = vec![
     ("5 + true", "Expected integer, found: Boolean(true)"),
@@ -200,6 +221,7 @@ fn test_error_handling() -> Result<(), String> {
     ("-true", "Expected integer, found: Boolean(true)"),
     ("false + true", "Unknown operation: Boolean + Boolean"),
     ("5; false + true; 5", "Unknown operation: Boolean + Boolean"),
+    ("5; \"hello\" - \"world\"; 5", "Unknown operation: String - String"),
     ("if (10 > 1) { false + true; }", "Unknown operation: Boolean + Boolean"),
     ("
       if (10 > 1) {

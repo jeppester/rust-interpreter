@@ -198,6 +198,7 @@ impl EvalObject for InfixExpression {
     match left_object {
       Object::Integer(_) => eval_integer_infix_expression(&self.operator, left_object, right_object),
       Object::Boolean(_) => eval_boolean_infix_expression(&self.operator, left_object, right_object),
+      Object::String(_) => eval_string_infix_expression(&self.operator, left_object, right_object),
       x => return Err(EvalError::not_implemented(&format!("InfixExpression for object type: {:?}", x))),
     }
   }
@@ -242,6 +243,18 @@ fn eval_boolean_infix_expression(operator: &str, left: Object, right: Object) ->
     token_types::EQ => Ok(native_boolean_to_boolean_object(left_value == right_value)),
     token_types::NOT_EQ => Ok(native_boolean_to_boolean_object(left_value != right_value)),
     _ => Err(EvalError(format!("Unknown operation: Boolean {} Boolean", operator))),
+  }
+}
+
+fn eval_string_infix_expression(operator: &str, left: Object, right: Object) -> Result<Object, EvalError> {
+  let left_value = left.get_string_value()?;
+  let right_value = right.get_string_value()?;
+
+  match operator {
+    token_types::PLUS => Ok(Object::String(left_value.clone() + &right_value)),
+    token_types::EQ => Ok(native_boolean_to_boolean_object(left_value == right_value)),
+    token_types::NOT_EQ => Ok(native_boolean_to_boolean_object(left_value != right_value)),
+    _ => Err(EvalError(format!("Unknown operation: String {} String", operator))),
   }
 }
 
